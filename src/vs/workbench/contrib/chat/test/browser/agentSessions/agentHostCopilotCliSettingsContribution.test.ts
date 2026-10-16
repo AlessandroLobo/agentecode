@@ -117,7 +117,7 @@ const fullSchema: Record<string, ConfigPropertySchema> = {
 	[CopilotCliConfigKey.HydraFusionV2]: { type: 'boolean', title: 'HydraFusion V2' },
 	[CopilotCliConfigKey.HydraFusionMultiRoot]: { type: 'boolean', title: 'HydraFusion Multi-Root' },
 	[CopilotCliConfigKey.Fusion]: { type: 'boolean', title: 'Fusion' },
-	[CopilotCliConfigKey.FusionBalanceUsesHydraFusion]: { type: 'boolean', title: 'Fusion Balance Uses HydraFusion' },
+	[CopilotCliConfigKey.FusionBalanceUsesHydraFusion]: { type: 'boolean', title: 'Fusion High Uses HydraFusion' },
 	[CopilotCliConfigKey.Memory]: { type: 'boolean', title: 'Copilot Memory' },
 	[CopilotCliConfigKey.LocalMemory]: { type: 'boolean', title: 'Local Copilot Memory' },
 	[CopilotCliConfigKey.AutoModeTierOverride]: { type: 'string', title: 'Auto Optimize for Override' },
@@ -315,7 +315,7 @@ suite('AgentHostCopilotCliSettingsContribution', () => {
 		});
 	});
 
-	test('forwards Fusion and its Balance routing', async () => {
+	test('forwards Fusion and its High routing', async () => {
 		const fusionSchema = {
 			[CopilotCliConfigKey.Fusion]: fullSchema[CopilotCliConfigKey.Fusion],
 			[CopilotCliConfigKey.FusionBalanceUsesHydraFusion]: fullSchema[CopilotCliConfigKey.FusionBalanceUsesHydraFusion],

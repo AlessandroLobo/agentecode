@@ -64,9 +64,9 @@ export const enum CopilotCliConfigKey {
 	HydraFusionV2 = 'hydraFusionV2',
 	/** Ask CAPI to keep a conversation's HydraFusion root model across turns. Set by the `'multiRoot'` HydraFusion setting value; requires {@link HydraFusionV2}. */
 	HydraFusionMultiRoot = 'hydraFusionMultiRoot',
-	/** Present Auto as Fusion, with Lite, Balance, and Max. Off by default. */
+	/** Present Auto as Fusion, with Standard, High, and Max. Off by default. */
 	Fusion = 'fusion',
-	/** With {@link Fusion}, Fusion's Balance uses HydraFusion. Off by default. */
+	/** With {@link Fusion}, Fusion's High uses HydraFusion. Off by default. */
 	FusionBalanceUsesHydraFusion = 'fusionBalanceUsesHydraFusion',
 	/** Enable Copilot Memory for Copilot SDK sessions. Off by default. */
 	Memory = 'memory',
@@ -320,13 +320,13 @@ export const copilotCliConfigSchema = createSchema({
 	[CopilotCliConfigKey.Fusion]: schemaProperty<boolean>({
 		type: 'boolean',
 		title: localize('agentHost.config.fusion.title', "Fusion"),
-		description: localize('agentHost.config.fusion.description', "When enabled, Auto is presented as Fusion, optimizing for Lite, Balance, or Max."),
+		description: localize('agentHost.config.fusion.description', "When enabled, Auto is presented as Fusion, optimizing for Standard, High, or Max."),
 		default: false,
 	}),
 	[CopilotCliConfigKey.FusionBalanceUsesHydraFusion]: schemaProperty<boolean>({
 		type: 'boolean',
-		title: localize('agentHost.config.fusionBalanceUsesHydraFusion.title', "Fusion Balance Uses HydraFusion"),
-		description: localize('agentHost.config.fusionBalanceUsesHydraFusion.description', "When enabled together with Fusion and HydraFusion, Fusion's Balance tier uses HydraFusion."),
+		title: localize('agentHost.config.fusionBalanceUsesHydraFusion.title', "Fusion High Uses HydraFusion"),
+		description: localize('agentHost.config.fusionBalanceUsesHydraFusion.description', "When enabled together with Fusion and HydraFusion, Fusion's High tier uses HydraFusion."),
 		default: false,
 	}),
 	[CopilotCliConfigKey.Memory]: schemaProperty<boolean>({

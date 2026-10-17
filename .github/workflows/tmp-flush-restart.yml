@@ -1,0 +1,20 @@
+name: Flush out chat move restart tests (temporary, do not merge)
+
+on:
+  push:
+    branches:
+      - agents/tmp-flush-restart-before
+      - agents/tmp-flush-restart-after
+
+permissions:
+  contents: read
+
+jobs:
+  linux-electron-unit:
+    name: Linux
+    uses: ./.github/workflows/pr-linux-test.yml
+    with:
+      job_name: Electron-Unit
+      electron_tests: true
+      integration_tests: false
+      smoke_tests: false

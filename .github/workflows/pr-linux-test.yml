@@ -301,16 +301,31 @@ jobs:
             sleep 5
           done
 
+      # TEMPORARY (flaky test flush-out): run ONLY the two chat move restart tests, in 8 parallel
+      # fail-fast loops to create CPU contention. Revert to `./scripts/test.sh --tfs "Unit Tests"`.
       - name: 🧪 Run unit tests (Electron)
         if: ${{ inputs.electron_tests && inputs.unit_tests }}
-        timeout-minutes: 15
-        run: ./scripts/test.sh --tfs "Unit Tests"
+        timeout-minutes: 60
+        run: |
+          ATTEMPTS=400
+          run_attempt() {
+            if ./scripts/test.sh --run src/vs/platform/agentHost/test/node/agentService.test.ts --grep 'keeps its attachments while a chat that moved out of it lives|a restart restores the order' --reporter dot > "/tmp/attempt-$1.log" 2>&1 && grep -q ' 2 passing' "/tmp/attempt-$1.log"; then
+              echo "attempt $1 passed"
+            else
+              echo "===== restart tests flush-out: attempt $1 FAILED ====="
+              cat "/tmp/attempt-$1.log"
+              exit 255
+            fi
+          }
+          export -f run_attempt
+          seq 1 $ATTEMPTS | xargs -P 8 -I{} bash -c 'run_attempt {}'
+          echo "All $ATTEMPTS attempts passed: could not reproduce the flake."
         env:
           DISPLAY: ":10"
           VSCODE_SKIP_PRELAUNCH: '1'
 
       - name: 🧪 Run unit tests (node.js)
-        if: ${{ inputs.electron_tests && inputs.unit_tests }}
+        if: false # TEMPORARY (flaky test flush-out): disabled to focus on the unit-test loop
         timeout-minutes: 15
         run: npm run test-node
 

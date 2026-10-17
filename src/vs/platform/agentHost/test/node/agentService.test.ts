@@ -34610,7 +34610,7 @@ suite('AgentService (node dispatcher)', () => {
 			 * keeps a deleted origin's attachments for them.
 			 */
 			function createDeletingServices(options?: { readonly copyAttachments?: boolean }) {
-				const base = createSessionDataService(new TestSessionDatabase());
+				const base = createPerSessionDataService().service; // From #342273
 				const sessionDataService: ISessionDataService = {
 					...base,
 					deleteSessionData: async session => {

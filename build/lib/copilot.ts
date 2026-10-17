@@ -148,10 +148,13 @@ const copilotOptionalNativePayloadDirs = [
 	'webview',
 ];
 
+const copilotComputerUsePluginFiles = 'plugins/computer-use/**';
+
 const copilotOptionalNativePayloadFiles = [
 	// Computer Use ships under plugins/computer-use/** in current
-	// @github/copilot-sdk platform packages. Do not productize it.
-	'plugins/computer-use/**',
+	// @github/copilot-sdk platform packages. Only macOS and Windows desktop
+	// clients opt in (see getCopilotRuntimePrebuildFiles).
+	copilotComputerUsePluginFiles,
 	'prebuilds/*/computer.node',
 	'prebuilds/*/keytar.node',
 	// macOS voice media-pause helper (MediaRemote adapter). Optional and
@@ -211,15 +214,20 @@ export function getCopilotExcludeFilter(platform: string, arch: string): string[
  *
  * .moduleignore strips all platform packages globally. Re-add the selected SDK
  * package while keeping optional native payloads out of the product build.
+ * `includeComputerUse` keeps the Computer Use built-in plugin, which only local
+ * macOS and Windows desktop agent hosts can offer.
  */
-export function getCopilotRuntimePrebuildFiles(platform: string, arch: string, nodeModulesRoot = 'node_modules'): string[] {
+export function getCopilotRuntimePrebuildFiles(platform: string, arch: string, nodeModulesRoot = 'node_modules', includeComputerUse = false): string[] {
 	const copilotPackagePlatformArch = toCopilotPackagePlatformArch(platform, arch);
 	const copilotSdkPackageDir = path.posix.join(nodeModulesRoot, '@github', `copilot-sdk-${copilotPackagePlatformArch}`);
+	const optionalNativePayloadFiles = includeComputerUse
+		? copilotOptionalNativePayloadFiles.filter(file => file !== copilotComputerUsePluginFiles)
+		: copilotOptionalNativePayloadFiles;
 
 	return [
 		path.posix.join(copilotSdkPackageDir, '**'),
 		...copilotOptionalNativePayloadDirs.map(dir => `!${path.posix.join(copilotSdkPackageDir, dir, '**')}`),
-		...copilotOptionalNativePayloadFiles.map(file => `!${path.posix.join(copilotSdkPackageDir, file)}`),
+		...optionalNativePayloadFiles.map(file => `!${path.posix.join(copilotSdkPackageDir, file)}`),
 	];
 }
 

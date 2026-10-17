@@ -3689,7 +3689,7 @@ export class CopilotAgent extends Disposable implements IAgent {
 			// package. Only the runtime executable can be explicitly overridden.
 			const nodeModulesUri = getAppNodeModulesUri();
 			// These lookups are independent; resolve them concurrently on the cold-start path.
-			const [{ runtimePath: bundledRuntimePath, extensionBootstrapPath, extensionSdkPath }, resolvedRgDiskPath, telemetry, nativeTelemetry] = await Promise.all([
+			const [{ runtimePath: bundledRuntimePath, extensionBootstrapPath, extensionSdkPath, computerUsePluginPath: bundledComputerUsePluginPath }, resolvedRgDiskPath, telemetry, nativeTelemetry] = await Promise.all([
 				resolveCopilotRuntimePaths(nodeModulesUri),
 				rgDiskPath(),
 				this._otelService.getSdkTelemetryConfig(),
@@ -3702,6 +3702,17 @@ export class CopilotAgent extends Disposable implements IAgent {
 				this._logService.info(`[Copilot] Using configured runtime path: ${runtimePath}`);
 			} else {
 				this._logService.info(`[Copilot] Using bundled runtime path: ${runtimePath}`);
+			}
+
+			// TODO@computer-use Dev-only prototype switch. Registering the plugin only
+			// offers Computer Use; users still opt in through `/computer on`.
+			const computerUsePluginPath = !scoped && process.env['VSCODE_AGENT_HOST_COMPUTER_USE'] === '1' && (process.platform === 'darwin' || process.platform === 'win32')
+				? bundledComputerUsePluginPath
+				: undefined;
+			if (computerUsePluginPath) {
+				this._logService.info(`[Copilot] Registering Computer Use built-in plugin: ${computerUsePluginPath}`);
+			} else if (!scoped && process.env['VSCODE_AGENT_HOST_COMPUTER_USE'] === '1') {
+				this._logService.warn('[Copilot] Computer Use requested but the built-in plugin is unavailable on this platform or build');
 			}
 
 			// The request handler can only be set when the client starts (the runtime
@@ -3758,6 +3769,7 @@ export class CopilotAgent extends Disposable implements IAgent {
 				},
 				telemetry,
 				installationConfirmationHandler: this._customizationInstallations.confirmationHandler,
+				...(computerUsePluginPath ? { builtinPluginDirectories: [computerUsePluginPath] } : {}),
 				logLevel: copilotSdkLogLevelAtStartup,
 				enableRemoteSessions: scoped?.kind !== 'storage' && startupConfig.sessionSync,
 				...(extensionBootstrapPath && extensionSdkPath ? {

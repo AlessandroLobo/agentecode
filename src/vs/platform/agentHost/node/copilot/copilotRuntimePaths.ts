@@ -11,6 +11,11 @@ export interface ICopilotRuntimePaths {
 	readonly sdkPath: string;
 	readonly extensionSdkPath?: string;
 	readonly extensionBootstrapPath?: string;
+	/**
+	 * The Computer Use built-in plugin directory shipped in the same platform
+	 * package, when present. Product builds currently strip it.
+	 */
+	readonly computerUsePluginPath?: string;
 }
 
 async function fileExists(filePath: string): Promise<boolean> {
@@ -55,13 +60,15 @@ export async function resolveCopilotRuntimePaths(nodeModulesUri: URI): Promise<I
 		const sdkPath = URI.joinPath(extensionSdkUri, 'index.js').fsPath;
 		const extensionPath = URI.joinPath(extensionSdkUri, 'extension.js').fsPath;
 		const extensionBootstrapPath = URI.joinPath(packageUri, 'preloads', 'extension_bootstrap.mjs').fsPath;
+		const computerUsePluginUri = URI.joinPath(packageUri, 'plugins', 'computer-use');
 		tried.push(`${runtimePath} with ${nativePath}, ${sdkPath}, ${extensionPath}, and ${extensionBootstrapPath}`);
-		const [runtimeExists, nativeExists, sdkExists, extensionExists, extensionBootstrapExists] = await Promise.all([
+		const [runtimeExists, nativeExists, sdkExists, extensionExists, extensionBootstrapExists, computerUsePluginExists] = await Promise.all([
 			fileExists(runtimePath),
 			fileExists(nativePath),
 			fileExists(sdkPath),
 			fileExists(extensionPath),
 			fileExists(extensionBootstrapPath),
+			fileExists(URI.joinPath(computerUsePluginUri, 'mcp.json').fsPath),
 		]);
 		if (runtimeExists && nativeExists && sdkExists) {
 			return {
@@ -71,6 +78,7 @@ export async function resolveCopilotRuntimePaths(nodeModulesUri: URI): Promise<I
 					extensionSdkPath: extensionSdkUri.fsPath,
 					extensionBootstrapPath,
 				} : {}),
+				...(computerUsePluginExists ? { computerUsePluginPath: computerUsePluginUri.fsPath } : {}),
 			};
 		}
 	}

@@ -131,6 +131,22 @@ suite('copilot', () => {
 		assertOptionalCopilotNativeDependenciesExcluded(files, 'node_modules/@github/copilot-sdk-darwin-arm64');
 	});
 
+	test('keeps the Computer Use plugin only when requested', () => {
+		const included = (platform: string, arch: string, packageDir: string, file: string) => ({
+			byDefault: matchesGlob(`${packageDir}/plugins/computer-use/${file}`, getCopilotRuntimePrebuildFiles(platform, arch)),
+			whenRequested: matchesGlob(`${packageDir}/plugins/computer-use/${file}`, getCopilotRuntimePrebuildFiles(platform, arch, undefined, true)),
+			otherPayloadWhenRequested: matchesGlob(`${packageDir}/prebuilds/x/keytar.node`, getCopilotRuntimePrebuildFiles(platform, arch, undefined, true)),
+		});
+
+		assert.deepStrictEqual({
+			darwin: included('darwin', 'arm64', 'node_modules/@github/copilot-sdk-darwin-arm64', 'Copilot Computer Use.app/Contents/MacOS/Copilot Computer Use'),
+			win32: included('win32', 'x64', 'node_modules/@github/copilot-sdk-win32-x64', 'CopilotComputerUse.exe'),
+		}, {
+			darwin: { byDefault: false, whenRequested: true, otherPayloadWhenRequested: false },
+			win32: { byDefault: false, whenRequested: true, otherPayloadWhenRequested: false },
+		});
+	});
+
 	for (const { platform, arch, packagePlatformArch } of [
 		{ platform: 'darwin', arch: 'arm64', packagePlatformArch: 'darwin-arm64' },
 		{ platform: 'darwin', arch: 'x64', packagePlatformArch: 'darwin-x64' },

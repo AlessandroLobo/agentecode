@@ -90,6 +90,9 @@
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories {
 	padding: 12px 24px;
+	background-image: url('./welcome-pattern.png');
+	background-repeat: repeat;
+	background-position: center;
 }
 
 /* duplicated until the getting-started specific setting is removed */

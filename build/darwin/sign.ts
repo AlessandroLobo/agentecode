@@ -31,6 +31,16 @@ function getEntitlementsForFile(filePath: string): string {
 	return path.join(baseDir, 'azure-pipelines', 'darwin', 'app-entitlements.plist');
 }
 
+/**
+ * Computer Use authenticates by code signature: its macOS helper only accepts a
+ * GitHub-signed `computer-use-mcp` launched by an approved GitHub-signed host
+ * (`copilot-runtime`). The runtime launcher loads `runtime.node` in-process, so
+ * both keep GitHub's Developer ID signature as well.
+ */
+function isGitHubSignedCopilotBinary(filePath: string): boolean {
+	return /[\\/]@github[\\/]copilot-sdk-darwin-[^\\/]+[\\/](?:plugins[\\/]computer-use(?:[\\/]|$)|prebuilds[\\/][^\\/]+[\\/](?:copilot-runtime|runtime\.node)$)/.test(filePath);
+}
+
 async function retrySignOnKeychainError<T>(fn: () => Promise<T>, maxRetries: number = 3): Promise<T> {
 	let lastError: Error | undefined;
 
@@ -84,6 +94,7 @@ async function main(buildDir?: string): Promise<void> {
 			entitlements: getEntitlementsForFile(filePath),
 			hardenedRuntime: true,
 		}),
+		ignore: isGitHubSignedCopilotBinary,
 		preAutoEntitlements: false,
 		preEmbedProvisioningProfile: false,
 		keychain: path.join(tempDir, 'buildagent.keychain'),

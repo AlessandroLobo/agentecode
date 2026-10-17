@@ -103,7 +103,7 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 	private readonly productIconThemeSequencer: Sequencer;
 
 	constructor(
-		@IExtensionService extensionService: IExtensionService,
+		@IExtensionService private readonly extensionService: IExtensionService,
 		@IStorageService private readonly storageService: IStorageService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@ITelemetryService private readonly telemetryService: ITelemetryService,
@@ -466,6 +466,7 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 	}
 
 	public async getColorThemes(): Promise<IWorkbenchColorTheme[]> {
+		await this.extensionService.whenInstalledExtensionsRegistered();
 		return this.colorThemeRegistry.getThemes();
 	}
 
@@ -671,6 +672,7 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 	}
 
 	public async getFileIconThemes(): Promise<IWorkbenchFileIconTheme[]> {
+		await this.extensionService.whenInstalledExtensionsRegistered();
 		return this.fileIconThemeRegistry.getThemes();
 	}
 
@@ -778,6 +780,7 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 	}
 
 	public async getProductIconThemes(): Promise<IWorkbenchProductIconTheme[]> {
+		await this.extensionService.whenInstalledExtensionsRegistered();
 		return this.productIconThemeRegistry.getThemes();
 	}
 

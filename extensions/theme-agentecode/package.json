@@ -20,10 +20,22 @@
         "path": "./themes/agentecode-deep-teal-color-theme.json"
       },
       {
+        "id": "AgenteCode Deep Teal Clean",
+        "label": "AgenteCode Deep Teal Clean",
+        "uiTheme": "vs-dark",
+        "path": "./themes/agentecode-deep-teal-clean-color-theme.json"
+      },
+      {
         "id": "AgenteCode Eficaz",
         "label": "AgenteCode Eficaz",
         "uiTheme": "vs-dark",
         "path": "./themes/agentecode-eficaz-color-theme.json"
+      },
+      {
+        "id": "AgenteCode Eficaz Clean",
+        "label": "AgenteCode Eficaz Clean",
+        "uiTheme": "vs-dark",
+        "path": "./themes/agentecode-eficaz-clean-color-theme.json"
       },
       {
         "id": "AgenteCode Everforest",
@@ -32,10 +44,22 @@
         "path": "./themes/agentecode-everforest-color-theme.json"
       },
       {
+        "id": "AgenteCode Everforest Clean",
+        "label": "AgenteCode Everforest Clean",
+        "uiTheme": "vs-dark",
+        "path": "./themes/agentecode-everforest-clean-color-theme.json"
+      },
+      {
         "id": "AgenteCode One Dark Pro",
         "label": "AgenteCode One Dark Pro",
         "uiTheme": "vs-dark",
         "path": "./themes/agentecode-one-dark-pro-color-theme.json"
+      },
+      {
+        "id": "AgenteCode One Dark Pro Clean",
+        "label": "AgenteCode One Dark Pro Clean",
+        "uiTheme": "vs-dark",
+        "path": "./themes/agentecode-one-dark-pro-clean-color-theme.json"
       }
     ]
   }

@@ -131,9 +131,27 @@
 	],
 	"onboardingThemes": [
 		{
-			"id": "dark-2026",
-			"label": "Dark 2026",
-			"themeId": "Dark 2026",
+			"id": "agentecode-deep-teal",
+			"label": "AgenteCode Deep Teal",
+			"themeId": "AgenteCode Deep Teal",
+			"type": "dark"
+		},
+		{
+			"id": "agentecode-eficaz",
+			"label": "AgenteCode Eficaz",
+			"themeId": "AgenteCode Eficaz",
+			"type": "dark"
+		},
+		{
+			"id": "agentecode-everforest",
+			"label": "AgenteCode Everforest",
+			"themeId": "AgenteCode Everforest",
+			"type": "dark"
+		},
+		{
+			"id": "agentecode-one-dark-pro",
+			"label": "AgenteCode One Dark Pro",
+			"themeId": "AgenteCode One Dark Pro",
 			"type": "dark"
 		},
 		{
@@ -141,12 +159,6 @@
 			"label": "Dark High Contrast",
 			"themeId": "Default High Contrast",
 			"type": "hcDark"
-		},
-		{
-			"id": "solarized-dark",
-			"label": "Solarized Dark",
-			"themeId": "Solarized Dark",
-			"type": "dark"
 		},
 		{
 			"id": "light-2026",

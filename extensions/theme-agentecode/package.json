@@ -1,0 +1,42 @@
+{
+  "name": "theme-agentecode",
+  "displayName": "AgenteCode Themes",
+  "description": "Temas nativos oficiais da suíte AgenteCode: Deep Teal, Eficaz, Everforest e One Dark Pro.",
+  "version": "1.0.0",
+  "publisher": "agentecode",
+  "license": "MIT",
+  "engines": {
+    "vscode": "*"
+  },
+  "categories": [
+    "Themes"
+  ],
+  "contributes": {
+    "themes": [
+      {
+        "id": "AgenteCode Deep Teal",
+        "label": "AgenteCode Deep Teal",
+        "uiTheme": "vs-dark",
+        "path": "./themes/agentecode-deep-teal-color-theme.json"
+      },
+      {
+        "id": "AgenteCode Eficaz",
+        "label": "AgenteCode Eficaz",
+        "uiTheme": "vs-dark",
+        "path": "./themes/agentecode-eficaz-color-theme.json"
+      },
+      {
+        "id": "AgenteCode Everforest",
+        "label": "AgenteCode Everforest",
+        "uiTheme": "vs-dark",
+        "path": "./themes/agentecode-everforest-color-theme.json"
+      },
+      {
+        "id": "AgenteCode One Dark Pro",
+        "label": "AgenteCode One Dark Pro",
+        "uiTheme": "vs-dark",
+        "path": "./themes/agentecode-one-dark-pro-color-theme.json"
+      }
+    ]
+  }
+}

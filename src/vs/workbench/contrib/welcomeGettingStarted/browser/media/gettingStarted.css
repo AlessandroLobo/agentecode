@@ -90,6 +90,9 @@
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories {
 	padding: 12px 24px;
+}
+
+.monaco-workbench.agentecode-theme-agentecode-themes-agentecode-eficaz-color-theme-json .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories {
 	background-image: url('./welcome-pattern.png');
 	background-repeat: repeat;
 	background-position: center;

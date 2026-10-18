@@ -53,7 +53,6 @@ O **AgenteCode** é uma IDE de alta performance criada para a era dos **agentes 
 
 ### 🛠️ Built-in Power Suite (Extensões Pré-instaladas)
 O AgenteCode já vem pronto para o trabalho do dia a dia, com extensões integradas:
-- **C# Dev Tools** (`jakubkozera.csharp-dev-tools`): Ferramentas completas para C# e .NET.
 - **.NET Install Tool** (`ms-dotnettools.vscode-dotnet-runtime`): Aquisição e gestão do runtime .NET.
 - **Claude Code for VS Code** (`anthropic.claude-code`): O agente líder de codificação pareada.
 - **Claude Usage: Limits, Context & Cost** (`alessandrolobo.claude-usage-statusbar-metric`): Monitoramento em tempo real de tokens, custos e limites na barra de status.

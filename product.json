@@ -6,6 +6,10 @@
 	"sharedDataFolderName": ".agentecode-shared",
 	"win32MutexName": "agentecode",
 	"licenseName": "MIT",
+	"configurationDefaults": {
+		"telemetry.telemetryLevel": "off",
+		"dotnetAcquisitionExtension.enableTelemetry": false
+	},
 	"licenseUrl": "https://github.com/agentecode/agentecode/blob/main/LICENSE.txt",
 	"serverLicenseUrl": "https://github.com/agentecode/agentecode/blob/main/LICENSE.txt",
 	"serverGreeting": [],
@@ -84,21 +88,6 @@
 					"flags": "verified"
 				},
 				"publisherDisplayName": "Microsoft"
-			}
-		},
-		{
-			"name": "jakubkozera.csharp-dev-tools",
-			"version": "1.14.5",
-			"repo": "https://github.com/jakubkozera/vsc-csharp-dev-tools",
-			"metadata": {
-				"id": "jakubkozera.csharp-dev-tools",
-				"publisherId": {
-					"publisherId": "jakubkozera",
-					"publisherName": "jakubkozera",
-					"displayName": "Jakub Kozera",
-					"flags": "verified"
-				},
-				"publisherDisplayName": "Jakub Kozera"
 			}
 		},
 		{
@@ -270,7 +259,6 @@
 		}
 	],
 	"builtInExtensionsEnabledWithAutoUpdates": [
-		"jakubkozera.csharp-dev-tools",
 		"ms-dotnettools.vscode-dotnet-runtime",
 		"anthropic.claude-code",
 		"alessandrolobo.claude-usage-statusbar-metric",

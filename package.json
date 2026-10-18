@@ -3,7 +3,8 @@
   "version": "1.142.0",
   "distro": "a0e7521b2a1e3289e4118fad155277b200aebd35",
   "author": {
-    "name": "Microsoft Corporation"
+    "name": "Alessandro Lobo",
+    "url": "https://github.com/AlessandroLobo"
   },
   "license": "MIT",
   "main": "./out/main.js",

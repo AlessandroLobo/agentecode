@@ -143,4 +143,4 @@ Quatro paletas, cada uma com variante **normal** (painéis com tons distintos) e
 O **AgenteCode** é distribuído sob a licença [MIT](LICENSE.txt).
 
 - Baseado no projeto de código aberto **Code - OSS** da Microsoft Corporation.
-- O AgenteCode é um projeto independente mantido por Alessandro Lobo e não é patrocinado nem afiliado à Microsoft Corporation.
+- O AgenteCode é um projeto independente mantido por [Alessandro Lobo](https://github.com/AlessandroLobo) e não é patrocinado nem afiliado à Microsoft Corporation.

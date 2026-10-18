@@ -1,33 +1,30 @@
 <p align="center">
-  <img src="resources/agentecode-logo.svg" width="340" alt="AgenteCode Logo">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="resources/readme/logo-dark.svg">
+    <img src="resources/readme/logo.svg" width="420" alt="AgenteCode">
+  </picture>
 </p>
 
 <p align="center">
-  <strong>The Autonomous AI-First Developer Environment</strong><br>
-  Uma distribuição moderna, veloz e focada em pair programming agêntico, arquitetura sem bordas e máxima produtividade.
+  <strong>The AI-First IDE for Autonomous Engineering</strong><br>
+  Uma distribuição moderna, veloz e focada em pair programming agêntico, com interface sem bordas e máxima produtividade.
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Base-Code--OSS%20v1.142.0-blue?style=flat-square" alt="Base">
-  <img src="https://img.shields.io/badge/AI%20Engine-Claude%20Code-orange?style=flat-square" alt="Claude Code">
-  <img src="https://img.shields.io/badge/Plataforma-Windows%20x64%20%7C%20Linux-brightgreen?style=flat-square" alt="Plataformas">
-  <img src="https://img.shields.io/badge/Extensões-Open%20VSX-purple?style=flat-square" alt="Open VSX">
-  <img src="https://img.shields.io/badge/Licen%C3%A7a-MIT-green?style=flat-square" alt="Licença MIT">
+  <img src="https://img.shields.io/badge/Base-Code--OSS%20v1.142.0-1F2328?style=for-the-badge" alt="Base">
+  <img src="https://img.shields.io/badge/AI%20Engine-Claude%20Code-C83B28?style=for-the-badge" alt="Claude Code">
+  <img src="https://img.shields.io/badge/Plataforma-Windows%20x64%20%7C%20Linux-1F2328?style=for-the-badge" alt="Plataformas">
+  <img src="https://img.shields.io/badge/Extens%C3%B5es-Open%20VSX-1F2328?style=for-the-badge" alt="Open VSX">
+  <img src="https://img.shields.io/badge/Licen%C3%A7a-MIT-1F2328?style=for-the-badge" alt="Licença MIT">
 </p>
+
+![AgenteCode — Everforest Clean](resources/readme/screenshots/everforest-clean.png)
 
 ---
 
 ## 🚀 Sobre o AgenteCode
 
-O **AgenteCode** é uma IDE de desenvolvimento de alta performance criada para a era dos **Agentes Autônomos de Inteligência Artificial**. 
-
-Construído a partir do núcleo de código aberto do **Code - OSS**, o AgenteCode elimina camadas proprietárias desnecessárias, telemetria invasiva e pop-ups comerciais, entregando uma experiência de desenvolvimento limpa, sem divisórias visuais e com integração nativa ao **Claude Code**.
-
-<p align="center">
-  <img src="resources/agentecode-mark.svg" width="120" alt="The Autonomous Loop">
-  <br>
-  <em>Símbolo oficial: The Autonomous Loop (O ciclo contínuo em duplo trilho com chaves de código e degradê âmbar-coral oficial)</em>
-</p>
+O **AgenteCode** é uma IDE de alta performance criada para a era dos **agentes autônomos de IA**. Construído a partir do núcleo aberto do **Code - OSS**, elimina camadas proprietárias desnecessárias, telemetria invasiva e pop-ups comerciais, entregando uma experiência limpa, sem divisórias visuais e com integração nativa ao **Claude Code**.
 
 ---
 
@@ -68,6 +65,26 @@ O AgenteCode já vem pronto para o trabalho do dia a dia, com extensões integra
 
 ### 📦 Marketplace Livre (Open VSX)
 - Conexão configurada diretamente para a **Open VSX Gallery** (`open-vsx.org`), permitindo instalar livremente milhares de extensões comunitárias sem violar termos proprietários.
+
+---
+
+## 🎨 Galeria de Temas
+
+Quatro paletas, cada uma com variante **normal** (painéis com tons distintos) e **Clean** (superfície única, sem divisórias).
+
+### Variantes Clean
+
+| | |
+|:---:|:---:|
+| ![Everforest Clean](resources/readme/screenshots/everforest-clean.png)<br>**Everforest Clean** | ![One Dark Pro Clean](resources/readme/screenshots/one-dark-pro-clean.png)<br>**One Dark Pro Clean** |
+| ![AgenteCode Eficaz Clean](resources/readme/screenshots/eficaz-clean.png)<br>**AgenteCode Eficaz Clean** | ![Deep Teal Clean](resources/readme/screenshots/deep-teal-clean.png)<br>**Deep Teal Clean** |
+
+### Variantes normais
+
+| | |
+|:---:|:---:|
+| ![AgenteCode Eficaz](resources/readme/screenshots/eficaz.png)<br>**AgenteCode Eficaz** | ![Deep Teal](resources/readme/screenshots/deep-teal.png)<br>**Deep Teal** |
+| ![Everforest](resources/readme/screenshots/everforest.png)<br>**Everforest** | ![One Dark Pro](resources/readme/screenshots/one-dark-pro.png)<br>**One Dark Pro** |
 
 ---
 

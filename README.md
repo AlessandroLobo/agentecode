@@ -76,15 +76,15 @@ Quatro paletas, cada uma com variante **normal** (painéis com tons distintos) e
 
 | | |
 |:---:|:---:|
-| ![Everforest Clean](resources/readme/screenshots/everforest-clean.png)<br>**Everforest Clean** | ![One Dark Pro Clean](resources/readme/screenshots/one-dark-pro-clean.png)<br>**One Dark Pro Clean** |
-| ![AgenteCode Eficaz Clean](resources/readme/screenshots/eficaz-clean.png)<br>**AgenteCode Eficaz Clean** | ![Deep Teal Clean](resources/readme/screenshots/deep-teal-clean.png)<br>**Deep Teal Clean** |
+| ![Everforest Clean](resources/readme/screenshots/everforest-clean.png)<br>**Everforest Clean** | ![Deep Teal Clean](resources/readme/screenshots/deep-teal-clean.png)<br>**Deep Teal Clean** |
+| ![AgenteCode Eficaz Clean](resources/readme/screenshots/eficaz-clean.png)<br>**AgenteCode Eficaz Clean** | ![One Dark Pro Clean](resources/readme/screenshots/one-dark-pro-clean.png)<br>**One Dark Pro Clean** |
 
 ### Variantes normais
 
 | | |
 |:---:|:---:|
-| ![AgenteCode Eficaz](resources/readme/screenshots/eficaz.png)<br>**AgenteCode Eficaz** | ![Deep Teal](resources/readme/screenshots/deep-teal.png)<br>**Deep Teal** |
-| ![Everforest](resources/readme/screenshots/everforest.png)<br>**Everforest** | ![One Dark Pro](resources/readme/screenshots/one-dark-pro.png)<br>**One Dark Pro** |
+| ![Everforest](resources/readme/screenshots/everforest.png)<br>**Everforest** | ![Deep Teal](resources/readme/screenshots/deep-teal.png)<br>**Deep Teal** |
+| ![AgenteCode Eficaz](resources/readme/screenshots/eficaz.png)<br>**AgenteCode Eficaz** | ![One Dark Pro](resources/readme/screenshots/one-dark-pro.png)<br>**One Dark Pro** |
 
 ---
 

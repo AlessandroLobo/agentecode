@@ -39,10 +39,10 @@ Construído a partir do núcleo de código aberto do **Code - OSS**, o AgenteCod
 - Eliminação total de chatbots redundantes ou popups de cota — foco exclusivo no agente principal.
 
 ### 🎨 Experiência Seamless Canvas (Borderless)
-- Interface inspirada na fluidez do **Google Antigravity** e **Cursor**: eliminação de linhas divisórias pesadas e pontos de redimensionamento (`sash grips`).
+- Interface fluida e sem divisórias: eliminação de linhas divisórias pesadas e pontos de redimensionamento (`sash grips`).
 - Editor de código, barras laterais e terminal compõem uma superfície visual única, contínua e imersiva.
 
-### 📐 Activity Bar Ergonômica (Padrão Antigravity)
+### 📐 Activity Bar Ergonômica
 - Dimensões calibradas para **42px de largura e altura** (contra os 48px convencionais).
 - Ícones em **18px** com indicadores arredondados em caixa de destaque suave (*soft rounded box*), trazendo máxima elegância e aproveitamento de tela.
 

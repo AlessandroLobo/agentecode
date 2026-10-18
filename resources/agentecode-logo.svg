@@ -1,40 +1,16 @@
-<svg width="600" height="180" viewBox="0 0 600 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="640" height="150" viewBox="0 0 640 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(10 20)">
   <defs>
-    <style>
-      .brand-title { fill: #1F2328; }
-      @media (prefers-color-scheme: dark) {
-        .brand-title { fill: #F0F6FC; }
-      }
-    </style>
-    <mask id="logoCrossoverGap">
-      <rect width="600" height="180" fill="white" />
-      <path d="M 74 61 C 97 61, 135 123, 158 123" stroke="black" stroke-width="11" stroke-linecap="round" fill="none"/>
-      <path d="M 74 72 C 97 72, 135 112, 158 112" stroke="black" stroke-width="11" stroke-linecap="round" fill="none"/>
+    <mask id="am-track" maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="110">
+      <rect width="200" height="110" fill="#fff"/>
+      <path d="M100 55 C128 18 188 8 188 55 C188 102 128 92 100 55 C72 18 12 8 12 55 C12 102 72 92 100 55 Z" stroke="#000" stroke-width="4" stroke-linejoin="round" fill="none"/>
     </mask>
   </defs>
-
-  <!-- SYMBOL: Flat Orange Dual Track -->
-  <g mask="url(#logoCrossoverGap)" stroke="#FF8C38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M 74 123 C 97 123, 135 61, 158 61" />
-    <path d="M 74 112 C 97 112, 135 72, 158 72" />
+  <g fill="none" stroke="#C83B28" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M100 55 C128 18 188 8 188 55 C188 102 128 92 100 55 C72 18 12 8 12 55 C12 102 72 92 100 55 Z" stroke-width="13" mask="url(#am-track)"/>
+    <path d="M52 40 L38 55 L52 70" stroke-width="7"/>
+    <path d="M148 40 L162 55 L148 70" stroke-width="7"/>
   </g>
-  <g stroke="#FF8C38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M 74 61 C 97 61, 135 123, 158 123" />
-    <path d="M 74 72 C 97 72, 135 112, 158 112" />
   </g>
-  <g stroke="#FF8C38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M 74 61 A 31 31 0 0 0 74 123" />
-    <path d="M 74 72 A 20 20 0 0 0 74 112" />
-  </g>
-  <g stroke="#FF8C38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M 158 61 A 31 31 0 0 1 158 123" />
-    <path d="M 158 72 A 20 20 0 0 1 158 112" />
-  </g>
-  <g stroke="#FF8C38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M 80 79 L 69 92 L 80 105" />
-    <path d="M 152 79 L 163 92 L 152 105" />
-  </g>
-
-  <!-- TYPOGRAPHY -->
-  <text class="brand-title" x="215" y="106" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" letter-spacing="-1">Agente<tspan fill="#FF8C38">Code</tspan></text>
+  <text x="235" y="96" font-family="'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif" font-size="68" font-weight="700" letter-spacing="-1.5" fill="#FFFFFF">Agente<tspan fill="#C83B28">Code</tspan></text>
 </svg>

@@ -1,39 +1,36 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <mask id="crossoverGap">
-      <rect width="512" height="512" fill="white" />
-      <path d="M 151 178 C 209 178, 303 334, 361 334" stroke="black" stroke-width="26" stroke-linecap="round" fill="none"/>
-      <path d="M 151 206 C 209 206, 303 306, 361 306" stroke="black" stroke-width="26" stroke-linecap="round" fill="none"/>
-    </mask>
+    <linearGradient id="brandGrad" x1="66" y1="256" x2="446" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFB347"/>
+      <stop offset="35%" stop-color="#FF9532"/>
+      <stop offset="70%" stop-color="#FF6A3D"/>
+      <stop offset="100%" stop-color="#E8503A"/>
+    </linearGradient>
   </defs>
 
-  <!-- UNDERPASS TRACK -->
-  <g mask="url(#crossoverGap)" stroke="#FF8C38" stroke-width="12.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M 151 334 C 209 334, 303 178, 361 178" />
-    <path d="M 151 306 C 209 306, 303 206, 361 206" />
-  </g>
+  <g stroke="url(#brandGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- 1. UNDERPASS (split with clean gap, NO MASKS) -->
+    <!-- Outer Underpass Left & Right -->
+    <path d="M 146 336 C 175 336, 200 310, 220 285" />
+    <path d="M 292 227 C 312 202, 337 176, 366 176" />
+    <!-- Inner Underpass Left & Right -->
+    <path d="M 146 306 C 175 306, 202 290, 222 275" />
+    <path d="M 290 237 C 310 222, 337 206, 366 206" />
 
-  <!-- OVERPASS TRACK -->
-  <g stroke="#FF8C38" stroke-width="12.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M 151 178 C 209 178, 303 334, 361 334" />
-    <path d="M 151 206 C 209 206, 303 306, 361 306" />
-  </g>
+    <!-- 2. OVERPASS (continuous top-left to bottom-right) -->
+    <path d="M 146 176 C 211 176, 301 336, 366 336" />
+    <path d="M 146 206 C 211 206, 301 306, 366 306" />
 
-  <!-- LEFT LOBE ARCS -->
-  <g stroke="#FF8C38" stroke-width="12.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M 151 178 A 78 78 0 0 0 151 334" />
-    <path d="M 151 206 A 50 50 0 0 0 151 306" />
-  </g>
+    <!-- 3. LEFT LOBE ARCS -->
+    <path d="M 146 176 C 102 176, 66 212, 66 256 C 66 300, 102 336, 146 336" />
+    <path d="M 146 206 C 118 206, 96 228, 96 256 C 96 284, 118 306, 146 306" />
 
-  <!-- RIGHT LOBE ARCS -->
-  <g stroke="#FF8C38" stroke-width="12.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M 361 178 A 78 78 0 0 1 361 334" />
-    <path d="M 361 206 A 50 50 0 0 1 361 306" />
-  </g>
+    <!-- 4. RIGHT LOBE ARCS -->
+    <path d="M 366 176 C 410 176, 446 212, 446 256 C 446 300, 410 336, 366 336" />
+    <path d="M 366 206 C 394 206, 416 228, 416 256 C 416 284, 394 306, 366 306" />
 
-  <!-- CHEVRONS < and > -->
-  <g stroke="#FF8C38" stroke-width="12.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M 165 224 L 137 256 L 165 288" />
-    <path d="M 347 224 L 375 256 L 347 288" />
+    <!-- 5. CHEVRONS < and > -->
+    <path d="M 158 226 L 132 256 L 158 286" />
+    <path d="M 354 226 L 380 256 L 354 286" />
   </g>
 </svg>

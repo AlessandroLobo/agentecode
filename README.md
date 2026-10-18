@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="resources/agentecode-logo.svg" width="480" alt="AgenteCode Logo">
+  <img src="resources/agentecode-logo.svg" width="340" alt="AgenteCode Logo">
 </p>
 
 <p align="center">
@@ -24,9 +24,9 @@ O **AgenteCode** é uma IDE de desenvolvimento de alta performance criada para a
 Construído a partir do núcleo de código aberto do **Code - OSS**, o AgenteCode elimina camadas proprietárias desnecessárias, telemetria invasiva e pop-ups comerciais, entregando uma experiência de desenvolvimento limpa, sem divisórias visuais e com integração nativa ao **Claude Code**.
 
 <p align="center">
-  <img src="resources/agentecode-mark.svg" width="140" alt="The Autonomous Loop">
+  <img src="resources/agentecode-mark.svg" width="120" alt="The Autonomous Loop">
   <br>
-  <em>Símbolo oficial: The Autonomous Loop (O ciclo contínuo e duplo do agente autônomo com sintaxe de código em laranja flat #FF8C38)</em>
+  <em>Símbolo oficial: The Autonomous Loop (O ciclo contínuo em duplo trilho com chaves de código e degradê âmbar-coral oficial)</em>
 </p>
 
 ---

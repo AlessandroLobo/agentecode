@@ -1,39 +1,13 @@
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="200" height="110" viewBox="0 0 200 110" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <mask id="crossoverGap">
-      <rect width="512" height="512" fill="white" />
-      <path d="M 151 178 C 209 178, 303 334, 361 334" stroke="black" stroke-width="26" stroke-linecap="round" fill="none"/>
-      <path d="M 151 206 C 209 206, 303 306, 361 306" stroke="black" stroke-width="26" stroke-linecap="round" fill="none"/>
+    <mask id="am-track" maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="110">
+      <rect width="200" height="110" fill="#fff"/>
+      <path d="M100 55 C128 18 188 8 188 55 C188 102 128 92 100 55 C72 18 12 8 12 55 C12 102 72 92 100 55 Z" stroke="#000" stroke-width="4" stroke-linejoin="round" fill="none"/>
     </mask>
   </defs>
-
-  <!-- UNDERPASS TRACK -->
-  <g mask="url(#crossoverGap)" stroke="#FF8C38" stroke-width="12.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M 151 334 C 209 334, 303 178, 361 178" />
-    <path d="M 151 306 C 209 306, 303 206, 361 206" />
-  </g>
-
-  <!-- OVERPASS TRACK -->
-  <g stroke="#FF8C38" stroke-width="12.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M 151 178 C 209 178, 303 334, 361 334" />
-    <path d="M 151 206 C 209 206, 303 306, 361 306" />
-  </g>
-
-  <!-- LEFT LOBE ARCS -->
-  <g stroke="#FF8C38" stroke-width="12.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M 151 178 A 78 78 0 0 0 151 334" />
-    <path d="M 151 206 A 50 50 0 0 0 151 306" />
-  </g>
-
-  <!-- RIGHT LOBE ARCS -->
-  <g stroke="#FF8C38" stroke-width="12.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M 361 178 A 78 78 0 0 1 361 334" />
-    <path d="M 361 206 A 50 50 0 0 1 361 306" />
-  </g>
-
-  <!-- CHEVRONS < and > -->
-  <g stroke="#FF8C38" stroke-width="12.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M 165 224 L 137 256 L 165 288" />
-    <path d="M 347 224 L 375 256 L 347 288" />
+  <g fill="none" stroke="#C83B28" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M100 55 C128 18 188 8 188 55 C188 102 128 92 100 55 C72 18 12 8 12 55 C12 102 72 92 100 55 Z" stroke-width="13" mask="url(#am-track)"/>
+    <path d="M52 40 L38 55 L52 70" stroke-width="7"/>
+    <path d="M148 40 L162 55 L148 70" stroke-width="7"/>
   </g>
 </svg>

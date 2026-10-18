@@ -1,8 +1,5 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="resources/readme/logo-dark.svg">
-    <img src="resources/readme/logo.svg" width="420" alt="AgenteCode">
-  </picture>
+  <img src="resources/readme/logo-banner.png" width="460" alt="AgenteCode">
 </p>
 
 <p align="center">

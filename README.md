@@ -1,82 +1,132 @@
-# AgenteCode — The AI-First IDE
+<p align="center">
+  <img src="resources/agentecode-logo.svg" width="480" alt="AgenteCode Logo">
+</p>
 
-> **AgenteCode** é uma distribuição de desenvolvimento focada em agentes autônomos, MCP (Model Context Protocol) e inteligência artificial, construída a partir do repositório de código aberto **Code - OSS** da Microsoft sob os termos da licença [MIT](LICENSE.txt).
+<p align="center">
+  <strong>The Autonomous AI-First Developer Environment</strong><br>
+  Uma distribuição moderna, veloz e focada em pair programming agêntico, arquitetura sem bordas e máxima produtividade.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Base-Code--OSS%20v1.142.0-blue?style=flat-square" alt="Base">
+  <img src="https://img.shields.io/badge/AI%20Engine-Claude%20Code-orange?style=flat-square" alt="Claude Code">
+  <img src="https://img.shields.io/badge/Plataforma-Windows%20x64%20%7C%20Linux-brightgreen?style=flat-square" alt="Plataformas">
+  <img src="https://img.shields.io/badge/Extensões-Open%20VSX-purple?style=flat-square" alt="Open VSX">
+  <img src="https://img.shields.io/badge/Licen%C3%A7a-MIT-green?style=flat-square" alt="Licença MIT">
+</p>
 
 ---
 
-# Visual Studio Code - Open Source ("Code - OSS")
-[![Feature Requests](https://img.shields.io/github/issues/microsoft/vscode/feature-request.svg)](https://github.com/microsoft/vscode/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request+sort%3Areactions-%2B1-desc)
-[![Bugs](https://img.shields.io/github/issues/microsoft/vscode/bug.svg)](https://github.com/microsoft/vscode/issues?utf8=✓&q=is%3Aissue+is%3Aopen+label%3Abug)
+## 🚀 Sobre o AgenteCode
 
-## The Repository
+O **AgenteCode** é uma IDE de desenvolvimento de alta performance criada para a era dos **Agentes Autônomos de Inteligência Artificial**. 
 
-This repository ("`Code - OSS`") is where we (Microsoft) develop the [Visual Studio Code](https://code.visualstudio.com) product together with the community. Not only do we work on code and issues here, but we also publish our [roadmap](https://github.com/microsoft/vscode/wiki/Roadmap), [monthly iteration plans](https://github.com/microsoft/vscode/wiki/Iteration-Plans), and our [endgame plans](https://github.com/microsoft/vscode/wiki/Running-the-Endgame). This source code is available to everyone under the standard [MIT license](https://github.com/microsoft/vscode/blob/main/LICENSE.txt).
-
-## Visual Studio Code
+Construído a partir do núcleo de código aberto do **Code - OSS**, o AgenteCode elimina camadas proprietárias desnecessárias, telemetria invasiva e pop-ups comerciais, entregando uma experiência de desenvolvimento limpa, sem divisórias visuais e com integração nativa ao **Claude Code**.
 
 <p align="center">
-  <img alt="VS Code in action" src="https://github.com/user-attachments/assets/56af271c-949d-454c-a3ea-16188c063414">
+  <img src="resources/agentecode-mark.svg" width="120" alt="The Autonomous Loop">
+  <br>
+  <em>Símbolo oficial: The Autonomous Loop (O ciclo contínuo do agente autônomo com a sintaxe do desenvolvedor)</em>
 </p>
 
-[Visual Studio Code](https://code.visualstudio.com) is a distribution of the `Code - OSS` repository with Microsoft-specific customizations released under a traditional [Microsoft product license](https://code.visualstudio.com/License/).
+---
 
-[Visual Studio Code](https://code.visualstudio.com) combines the simplicity of a code editor with what developers need for their core edit-build-debug cycle. It provides comprehensive code editing, navigation, and understanding support along with lightweight debugging, a rich extensibility model, and lightweight integration with existing tools.
+## ✨ Principais Diferenciais
 
-Visual Studio Code is updated monthly with new features and bug fixes. You can download it for Windows, macOS, and Linux on the [Visual Studio Code website](https://code.visualstudio.com/Download). To get the latest releases every day, install the [Insiders build](https://code.visualstudio.com/insiders).
+### 🧠 Claude Code Integrado de Fábrica
+- Painel lateral dedicado posicionado na barra lateral secundária (**Right Auxiliary Bar**), garantindo que seu explorador de arquivos e estrutura de projeto fiquem sempre visíveis à esquerda.
+- Atalho nativo **`Ctrl + L`**: Pressione para abrir instantaneamente o chat com o agente; pressione novamente para recolher o painel (*toggle* completo).
+- Eliminação total de chatbots redundantes ou popups de cota — foco exclusivo no agente principal.
 
-## Contributing
+### 🎨 Experiência Seamless Canvas (Borderless)
+- Interface inspirada na fluidez do **Google Antigravity** e **Cursor**: eliminação de linhas divisórias pesadas e pontos de redimensionamento (`sash grips`).
+- Editor de código, barras laterais e terminal compõem uma superfície visual única, contínua e imersiva.
 
-There are many ways in which you can participate in this project, for example:
+### 📐 Activity Bar Ergonômica (Padrão Antigravity)
+- Dimensões calibradas para **42px de largura e altura** (contra os 48px convencionais).
+- Ícones em **18px** com indicadores arredondados em caixa de destaque suave (*soft rounded box*), trazendo máxima elegância e aproveitamento de tela.
 
-* [Submit bugs and feature requests](https://github.com/microsoft/vscode/issues), and help us verify them as they are checked in
-* Review [source code changes](https://github.com/microsoft/vscode/pulls)
-* Review the [documentation](https://github.com/microsoft/vscode-docs) and make pull requests for anything from typos to new content.
+### ⚡ Zero Bloatware & Alta Performance
+- **Desativação de Daemons Ocultos:** Inicialização de processos em segundo plano (`AgentHost` e `RemoteAgentHost`) completamente neutralizada.
+- **Fim de Telas Promocionais:** Removidas notificações de cotas, pesquisas de conta Microsoft e banners comerciais.
+- Consumo de memória e processamento reduzido para inicialização instantânea.
 
-If you are interested in fixing issues and contributing directly to the codebase, please see the document [How to Contribute](https://github.com/microsoft/vscode/wiki/How-to-Contribute), which covers the following:
+### 🎨 Suíte de 8 Temas Nativos Oficiais
+- **AgenteCode Eficaz & Eficaz Clean:** Paleta corporativa oficial EF Sistemas (Azul Petróleo `#002B49`, Verde-Água `#3CDBC0` e Slate Blue `#869CAE`).
+- **AgenteCode Deep Teal & Deep Teal Clean:** Fundo escuro esmeralda focado em leitura de código.
+- **AgenteCode Everforest & Everforest Clean:** Tons orgânicos suaves de alto contraste e baixo cansaço visual.
+- **AgenteCode One Dark Pro & One Dark Pro Clean:** O consagrado clássico dark perfeitamente ajustado para a estética borderless.
 
-* [How to build and run from source](https://github.com/microsoft/vscode/wiki/How-to-Contribute)
-* [The development workflow, including debugging and running tests](https://github.com/microsoft/vscode/wiki/How-to-Contribute#debugging)
-* [Coding guidelines](https://github.com/microsoft/vscode/wiki/Coding-Guidelines)
-* [Submitting pull requests](https://github.com/microsoft/vscode/wiki/How-to-Contribute#pull-requests)
-* [Finding an issue to work on](https://github.com/microsoft/vscode/wiki/How-to-Contribute#where-to-contribute)
-* [Contributing to translations](https://aka.ms/vscodeloc)
+### 🛠️ Built-in Power Suite (Extensões Pré-instaladas)
+O AgenteCode já vem pronto para o trabalho do dia a dia, com extensões integradas:
+- **C# Dev Tools** (`jakubkozera.csharp-dev-tools`): Ferramentas completas para C# e .NET.
+- **.NET Install Tool** (`ms-dotnettools.vscode-dotnet-runtime`): Aquisição e gestão do runtime .NET.
+- **Claude Code for VS Code** (`anthropic.claude-code`): O agente líder de codificação pareada.
+- **Claude Usage: Limits, Context & Cost** (`alessandrolobo.claude-usage-statusbar-metric`): Monitoramento em tempo real de tokens, custos e limites na barra de status.
+- **Markhub** (`HellFiveOsborn.markhub`): Editor rico de Markdown com suporte nativo a diagramas Mermaid.
+- **SQL Server (mssql)** (`ms-mssql.mssql`): Conexão e consultas a bancos de dados Microsoft SQL Server e Azure SQL.
 
-## Feedback
+### 📦 Marketplace Livre (Open VSX)
+- Conexão configurada diretamente para a **Open VSX Gallery** (`open-vsx.org`), permitindo instalar livremente milhares de extensões comunitárias sem violar termos proprietários.
 
-* Ask a question on [Stack Overflow](https://stackoverflow.com/questions/tagged/vscode)
-* [Request a new feature](CONTRIBUTING.md)
-* Upvote [popular feature requests](https://github.com/microsoft/vscode/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request+sort%3Areactions-%2B1-desc)
-* [File an issue](https://github.com/microsoft/vscode/issues)
-* Connect with the extension author community on [GitHub Discussions](https://github.com/microsoft/vscode-discussions/discussions) or [Slack](https://aka.ms/vscode-dev-community)
-* Follow [@code](https://x.com/code) and let us know what you think!
+---
 
-See our [wiki](https://github.com/microsoft/vscode/wiki/Feedback-Channels) for a description of each of these channels and information on some other available community-driven channels.
+## ⌨️ Atalhos Principais
 
-## Related Projects
+| Atalho | Ação |
+| :--- | :--- |
+| **`Ctrl + L`** | Abrir / Recolher o Claude Code (Toggle Lateral) |
+| **`Ctrl + Shift + P`** | Abrir Paleta de Comandos Global |
+| **`Ctrl + P`** | Localização Rápida de Arquivos |
+| **`Ctrl + B`** | Alternar Barra Lateral Primária (Explorador) |
+| **`Ctrl + J`** | Alternar Painel Inferior (Terminal / Problemas) |
+| **`Ctrl + K Ctrl + T`** | Seletor de Temas Nativos Oficiais |
 
-Many of the core components and extensions to VS Code live in their own repositories on GitHub. For example, the [node debug adapter](https://github.com/microsoft/vscode-node-debug) and the [mono debug adapter](https://github.com/microsoft/vscode-mono-debug) repositories are separate from each other. For a complete list, please visit the [Related Projects](https://github.com/microsoft/vscode/wiki/Related-Projects) page on our [wiki](https://github.com/microsoft/vscode/wiki).
+---
 
-## Bundled Extensions
+## 💻 Como Compilar e Rodar a partir do Código-Fonte
 
-VS Code includes a set of built-in extensions located in the [extensions](extensions) folder, including grammars and snippets for many languages. Extensions that provide rich language support (inline suggestions, Go to Definition) for a language have the suffix `language-features`. For example, the `json` extension provides coloring for `JSON` and the `json-language-features` extension provides rich language support for `JSON`.
+### Pré-requisitos
+- **Node.js:** Versão `24.20.0` (recomendado uso do `.nvmrc`).
+- **Python:** Versão `3.12+` (com ferramentas `setuptools`).
+- **Visual Studio Build Tools:** C++ Desktop Development com bibliotecas com mitigação Spectre.
+- **Git:** Com suporte a caminhos longos ativado (`git config --global core.longpaths true`).
 
-## Development Container
+### Passo a Passo
 
-This repository includes a Visual Studio Code Dev Containers / GitHub Codespaces development container.
+1. **Clonar o Repositório:**
+   ```bash
+   git clone https://github.com/AlessandroLobo/agentecode.git
+   cd agentecode/core
+   ```
 
-* For [Dev Containers](https://aka.ms/vscode-remote/download/containers), use the **Dev Containers: Clone Repository in Container Volume...** command, which creates a Docker volume for better disk I/O on macOS and Windows.
-  * If you already have VS Code and Docker installed, you can also click [here](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/vscode) to get started. This will cause VS Code to automatically install the Dev Containers extension if needed, clone the source code into a container volume, and spin up a dev container for use.
+2. **Instalar Dependências:**
+   ```bash
+   npm install
+   ```
 
-* For Codespaces, install the [GitHub Codespaces](https://marketplace.visualstudio.com/items?itemName=GitHub.codespaces) extension in VS Code, and use the **Codespaces: Create New Codespace** command.
+3. **Compilar os Recursos do Cliente:**
+   ```bash
+   npm run transpile-client
+   ```
 
-Docker / the Codespace should have at least **4 cores and 6 GB of RAM (8 GB recommended)** to run a full build. See the [development container README](.devcontainer/README.md) for more information.
+4. **Iniciar o AgenteCode em Modo de Desenvolvimento:**
+   ```powershell
+   .\scripts\code.bat
+   ```
 
-## Code of Conduct
+---
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information, see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+## 📦 Distribuição e Download
 
-## License
+- **Instalador Oficial para Windows (x64):** Baixe o executável `AgenteCodeSetup-x64.exe` na página de [Releases](https://github.com/AlessandroLobo/agentecode/releases).
+- **Página Oficial do Projeto:** [alessandrolobo.github.io/agentecode](https://alessandrolobo.github.io/agentecode)
 
-Copyright (c) Microsoft Corporation. All rights reserved.
+---
 
-Licensed under the [MIT](LICENSE.txt) license.
+## 📄 Licença e Créditos
+
+O **AgenteCode** é distribuído sob a licença [MIT](LICENSE.txt).
+
+- Baseado no projeto de código aberto **Code - OSS** da Microsoft Corporation.
+- O AgenteCode é um projeto independente mantido por Alessandro Lobo e não é patrocinado nem afiliado à Microsoft Corporation.

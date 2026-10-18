@@ -2905,7 +2905,7 @@ const LayoutStateKeys = {
 	SIDEBAR_HIDDEN: new RuntimeStateKey<boolean>('sideBar.hidden', StorageScope.WORKSPACE, StorageTarget.MACHINE, false),
 	EDITOR_HIDDEN: new RuntimeStateKey<boolean>('editor.hidden', StorageScope.WORKSPACE, StorageTarget.MACHINE, false),
 	PANEL_HIDDEN: new RuntimeStateKey<boolean>('panel.hidden', StorageScope.WORKSPACE, StorageTarget.MACHINE, true),
-	AUXILIARYBAR_HIDDEN: new RuntimeStateKey<boolean>('auxiliaryBar.hidden', StorageScope.WORKSPACE, StorageTarget.MACHINE, true),
+	AUXILIARYBAR_HIDDEN: new RuntimeStateKey<boolean>('auxiliaryBar.hidden', StorageScope.WORKSPACE, StorageTarget.MACHINE, false),
 	STATUSBAR_HIDDEN: new RuntimeStateKey<boolean>('statusBar.hidden', StorageScope.WORKSPACE, StorageTarget.MACHINE, false, true)
 
 } as const;
@@ -3052,13 +3052,10 @@ class LayoutStateModel extends Disposable {
 				return false;
 			}
 
-			// Existing users: respect visibility setting
+			// Respect visibility setting
 			switch (configuration.value) {
 				case 'hidden':
 					return true;
-				case 'visibleInWorkspace':
-				case 'maximizedInWorkspace':
-					return workbenchState === WorkbenchState.EMPTY;
 				default:
 					return false;
 			}

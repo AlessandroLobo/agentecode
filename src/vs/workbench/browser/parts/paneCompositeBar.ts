@@ -694,7 +694,29 @@ export class PaneCompositeBar extends Disposable {
 	}
 
 	private getStoredPinnedViewContainersValue(): string {
-		return this.storageService.get(this.options.pinnedViewContainersKey, StorageScope.PROFILE, '[]');
+		const stored = this.storageService.get(this.options.pinnedViewContainersKey, StorageScope.PROFILE);
+		if (this.options.pinnedViewContainersKey === 'workbench.activity.pinnedViewlets2') {
+			const version = this.storageService.getNumber('workbench.activity.pinnedViewlets2.layoutVersion', StorageScope.PROFILE, 0);
+			if (version < 1 || !stored || stored === '[]') {
+				const defaults = JSON.stringify([
+					{ id: 'workbench.view.extension.csharpDevTools', pinned: true, visible: false, order: 0 },
+					{ id: 'workbench.view.explorer', pinned: true, visible: false, order: 1 },
+					{ id: 'workbench.view.scm', pinned: true, visible: false, order: 2 },
+					{ id: 'workbench.view.extensions', pinned: true, visible: false, order: 3 },
+					{ id: 'workbench.view.chat.sessions', pinned: true, visible: false, order: 4 },
+					{ id: 'workbench.view.extension.claude-sidebar', pinned: true, visible: false, order: 5 },
+					{ id: 'workbench.view.extension.claudeUsage', pinned: true, visible: false, order: 6 },
+					{ id: 'workbench.view.search', pinned: false, visible: false, order: 7 },
+					{ id: 'workbench.view.debug', pinned: false, visible: false, order: 8 },
+					{ id: 'workbench.view.remote', pinned: false, visible: false, order: 9 },
+					{ id: 'workbench.view.extension.test', pinned: false, visible: false, order: 10 },
+				]);
+				this.storageService.store('workbench.activity.pinnedViewlets2.layoutVersion', 1, StorageScope.PROFILE, StorageTarget.USER);
+				this.setStoredPinnedViewContainersValue(defaults);
+				return defaults;
+			}
+		}
+		return stored ?? '[]';
 	}
 
 	private setStoredPinnedViewContainersValue(value: string): void {

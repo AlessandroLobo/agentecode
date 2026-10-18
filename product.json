@@ -85,6 +85,96 @@
 				},
 				"publisherDisplayName": "Microsoft"
 			}
+		},
+		{
+			"name": "jakubkozera.csharp-dev-tools",
+			"version": "1.14.5",
+			"repo": "https://github.com/jakubkozera/vsc-csharp-dev-tools",
+			"metadata": {
+				"id": "jakubkozera.csharp-dev-tools",
+				"publisherId": {
+					"publisherId": "jakubkozera",
+					"publisherName": "jakubkozera",
+					"displayName": "Jakub Kozera",
+					"flags": "verified"
+				},
+				"publisherDisplayName": "Jakub Kozera"
+			}
+		},
+		{
+			"name": "ms-dotnettools.vscode-dotnet-runtime",
+			"version": "3.2.0",
+			"repo": "https://github.com/dotnet/vscode-dotnet-runtime",
+			"metadata": {
+				"id": "1aab81a1-b3d9-4aef-976b-577d5d90fe3f",
+				"publisherId": {
+					"publisherId": "ms-dotnettools",
+					"publisherName": "ms-dotnettools",
+					"displayName": ".NET Foundation",
+					"flags": "verified"
+				},
+				"publisherDisplayName": "Microsoft"
+			}
+		},
+		{
+			"name": "anthropic.claude-code",
+			"version": "2.1.300",
+			"repo": "https://github.com/anthropics/claude-code",
+			"metadata": {
+				"id": "anthropic.claude-code",
+				"publisherId": {
+					"publisherId": "anthropic",
+					"publisherName": "Anthropic",
+					"displayName": "Anthropic",
+					"flags": "verified"
+				},
+				"publisherDisplayName": "Anthropic"
+			}
+		},
+		{
+			"name": "alessandrolobo.claude-usage-statusbar-metric",
+			"version": "0.9.2",
+			"repo": "https://github.com/AlessandroLobo/claude-usage-statusbar",
+			"metadata": {
+				"id": "alessandrolobo.claude-usage-statusbar-metric",
+				"publisherId": {
+					"publisherId": "alessandrolobo",
+					"publisherName": "alessandrolobo",
+					"displayName": "Alessandro Lobo",
+					"flags": "verified"
+				},
+				"publisherDisplayName": "Alessandro Lobo"
+			}
+		},
+		{
+			"name": "HellFiveOsborn.markhub",
+			"version": "0.0.13",
+			"repo": "https://github.com/HellFiveOsborn/markhub",
+			"metadata": {
+				"id": "HellFiveOsborn.markhub",
+				"publisherId": {
+					"publisherId": "HellFiveOsborn",
+					"publisherName": "HellFiveOsborn",
+					"displayName": "HellFiveOsborn",
+					"flags": ""
+				},
+				"publisherDisplayName": "HellFiveOsborn"
+			}
+		},
+		{
+			"name": "ms-mssql.mssql",
+			"version": "1.46.0",
+			"repo": "https://github.com/Microsoft/vscode-mssql",
+			"metadata": {
+				"id": "ms-mssql.mssql",
+				"publisherId": {
+					"publisherId": "ms-mssql",
+					"publisherName": "ms-mssql",
+					"displayName": "Microsoft",
+					"flags": "verified"
+				},
+				"publisherDisplayName": "Microsoft"
+			}
 		}
 	],
 	"trustedExtensionAuthAccess": {
@@ -179,7 +269,14 @@
 			"type": "light"
 		}
 	],
-	"builtInExtensionsEnabledWithAutoUpdates": [],
+	"builtInExtensionsEnabledWithAutoUpdates": [
+		"jakubkozera.csharp-dev-tools",
+		"ms-dotnettools.vscode-dotnet-runtime",
+		"anthropic.claude-code",
+		"alessandrolobo.claude-usage-statusbar-metric",
+		"HellFiveOsborn.markhub",
+		"ms-mssql.mssql"
+	],
 	"sessionsWindowAllowedExtensions": [],
 	"extensionsGallery": {
 		"serviceUrl": "https://open-vsx.org/vscode/gallery",

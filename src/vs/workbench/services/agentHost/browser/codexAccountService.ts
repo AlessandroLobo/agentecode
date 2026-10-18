@@ -5,14 +5,13 @@
 
 import { Event, Emitter } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
-import { Action, IAction, SubmenuAction, toAction } from '../../../../base/common/actions.js';
+import type { IAction } from '../../../../base/common/actions.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { CODEX_ACCOUNT_SIGN_IN_REQUEST_KEY, CODEX_ACCOUNT_SIGN_OUT_REQUEST_KEY, MAX_CODEX_PROFILE_IMAGE_BYTES, readCodexAccountInfo, type ICodexAccountInfo, type ICodexProfileImageReference } from '../../../../platform/agentHost/common/codexAccount.js';
 import { CODEX_AGENT_PROVIDER_ID } from '../../../../platform/agentHost/common/agent.js';
-import { AgentHostCodexAgentEnabledSettingId, CodexPreferAgentHostEditorSettingId, IAgentHostService } from '../../../../platform/agentHost/common/agentService.js';
-import { ChatAIDisabledSettingId } from '../../../../platform/chat/common/chatSettings.js';
+import { IAgentHostService } from '../../../../platform/agentHost/common/agentService.js';
 import { ActionType } from '../../../../platform/agentHost/common/state/sessionActions.js';
 import { ContentEncoding } from '../../../../platform/agentHost/common/state/sessionProtocol.js';
 import { ROOT_STATE_URI } from '../../../../platform/agentHost/common/state/sessionState.js';
@@ -45,7 +44,7 @@ export interface ICodexAccountService {
 }
 
 export function hasSignedInCodexChatGPTAccount(account: ICodexAccountInfo, visible = true): boolean {
-	return visible && account.status === 'signedIn';
+	return false;
 }
 
 /**
@@ -53,7 +52,7 @@ export function hasSignedInCodexChatGPTAccount(account: ICodexAccountInfo, visib
  * resolve it without requiring GitHub first; this is not proof of sign-in.
  */
 export function canInitializeCodexWithoutGitHub(account: Pick<ICodexAccountInfo, 'status'>): boolean {
-	return account.status === 'unknown' || account.status === 'signedIn';
+	return false;
 }
 
 export function getCodexAccountPlanName(account: Pick<ICodexAccountInfo, 'planType'>): string {
@@ -63,34 +62,10 @@ export function getCodexAccountPlanName(account: Pick<ICodexAccountInfo, 'planTy
 }
 
 export function shouldShowCodexAccount(configurationService: ICodexAccountVisibilityConfiguration, isSessionsWindow: boolean): boolean {
-	return configurationService.getValue<boolean>(ChatAIDisabledSettingId) !== true
-		&& configurationService.getValue<boolean>(AgentHostCodexAgentEnabledSettingId) === true
-		&& (isSessionsWindow || configurationService.getValue<boolean>(CodexPreferAgentHostEditorSettingId) === true);
+	return false;
 }
 
-export function createCodexAccountMenuActions(service: ICodexAccountService, visible = true): IAction[] {
-	if (!visible) {
-		return [];
-	}
-	const account = service.account;
-	if (account.status === 'signedIn') {
-		const signOut = toAction({
-			id: 'codex.signOutOfChatGPT',
-			label: localize('signOutOfChatGPT', "Sign Out"),
-			run: () => service.signOut(),
-		});
-		const accountLabel = account.email
-			? localize('chatGPTAccountWithProvider', "{0} (ChatGPT)", account.email)
-			: localize('chatGPTAccount', "ChatGPT");
-		return [new SubmenuAction('codex.chatgptAccount', accountLabel, [signOut])];
-	}
-	if (account.status === 'downloading') {
-		return [new Action('codex.downloadingAgent', localize('downloadingCodexAgent', "Downloading Codex Agent…"), undefined, false)];
-	}
-	// Unknown is passive until explicit Codex use resolves the account.
-	if (account.status === 'signedOut' || account.status === 'error') {
-		return [new Action('codex.signInToChatGPT', localize('signInToChatGPT', "Sign in to ChatGPT"), undefined, true, () => service.signIn())];
-	}
+export function createCodexAccountMenuActions(_service: ICodexAccountService, _visible = true): IAction[] {
 	return [];
 }
 

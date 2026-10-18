@@ -7,10 +7,15 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { Action2, MenuId, MenuRegistry, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { IConfigurationRegistry, Extensions as ConfigurationExtensions } from '../../../../platform/configuration/common/configurationRegistry.js';
+import { Registry } from '../../../../platform/registry/common/platform.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { Categories } from '../../../../platform/action/common/actionCommonCategories.js';
 import { AuxiliaryBarMaximizedContext, AuxiliaryBarVisibleContext, IsAuxiliaryWindowContext, SecondarySideBarVisibleContext } from '../../../common/contextkeys.js';
-import { ViewContainerLocation, ViewContainerLocationToString } from '../../../common/views.js';
+import { ViewContainerLocation, ViewContainerLocationToString, IViewContainersRegistry, Extensions as ViewContainerExtensions, ViewContainer, defaultViewIcon } from '../../../common/views.js';
+import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
+import { ViewPaneContainer } from '../views/viewPaneContainer.js';
 import { ActivityBarPosition, IWorkbenchLayoutService, LayoutSettings, Parts } from '../../../services/layout/browser/layoutService.js';
 import { IPaneCompositePartService } from '../../../services/panecomposite/browser/panecomposite.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
@@ -125,6 +130,43 @@ registerAction2(class FocusAuxiliaryBarAction extends Action2 {
 		// Focus into active composite
 		const composite = paneCompositeService.getActivePaneComposite(ViewContainerLocation.AuxiliaryBar);
 		composite?.focus();
+	}
+});
+
+registerAction2(class ToggleClaudeChatAction extends Action2 {
+
+	static readonly ID = 'workbench.action.toggleClaudeChat';
+	static readonly LABEL = localize2('toggleClaudeChat', "Toggle Claude Code Chat");
+
+	constructor() {
+		super({
+			id: ToggleClaudeChatAction.ID,
+			title: ToggleClaudeChatAction.LABEL,
+			category: Categories.View,
+			f1: true,
+			keybinding: {
+				weight: KeybindingWeight.WorkbenchContrib + 10,
+				primary: KeyMod.CtrlCmd | KeyCode.KeyL,
+				mac: { primary: KeyMod.CtrlCmd | KeyCode.KeyL }
+			}
+		});
+	}
+
+	override async run(accessor: ServicesAccessor): Promise<void> {
+		const layoutService = accessor.get(IWorkbenchLayoutService);
+		const commandService = accessor.get(ICommandService);
+
+		const isVisible = layoutService.isVisible(Parts.AUXILIARYBAR_PART);
+
+		if (isVisible) {
+			layoutService.setPartHidden(true, Parts.AUXILIARYBAR_PART);
+		} else {
+			try {
+				await commandService.executeCommand('claude-vscode.sidebar.open');
+			} catch {
+				layoutService.setPartHidden(false, Parts.AUXILIARYBAR_PART);
+			}
+		}
 	}
 });
 
@@ -287,3 +329,20 @@ class ToggleMaximizedAuxiliaryBar extends Action2 {
 	}
 }
 registerAction2(ToggleMaximizedAuxiliaryBar);
+
+Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerDefaultConfigurations([{
+	overrides: {
+		'claudeCode.preferredLocation': 'sidebar',
+		'window.menuBarVisibility': 'compact',
+	}
+}]);
+
+export const AGENT_SESSIONS_VIEW_CONTAINER: ViewContainer = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry).registerViewContainer({
+	id: 'workbench.view.chat.sessions',
+	title: localize2('agentSessions.view.label', "Agent Sessions"),
+	icon: defaultViewIcon,
+	ctorDescriptor: new SyncDescriptor(ViewPaneContainer, ['workbench.view.chat.sessions', { mergeViewWithContainerWhenSingleView: true }]),
+	storageId: 'workbench.view.chat.sessions',
+	hideIfEmpty: false,
+	order: 4,
+}, ViewContainerLocation.Sidebar, { isDefault: true });

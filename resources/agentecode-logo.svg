@@ -1,0 +1,19 @@
+<svg width="600" height="200" viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="agenteGradLogo" x1="40" y1="60" x2="190" y2="140" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFB347"/>
+      <stop offset="35%" stop-color="#FF8C38"/>
+      <stop offset="70%" stop-color="#E85D35"/>
+      <stop offset="100%" stop-color="#C83B28"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(10, 10) scale(0.35)">
+    <path d="M 256 256 C 205 176, 95 176, 95 256 C 95 336, 205 336, 256 256 C 307 176, 417 176, 417 256 C 417 336, 307 336, 256 256 Z"
+          stroke="url(#agenteGradLogo)" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 174 218 L 138 256 L 174 294"
+          stroke="url(#agenteGradLogo)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 338 218 L 374 256 L 338 294"
+          stroke="url(#agenteGradLogo)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="200" y="115" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF" letter-spacing="-0.5">Agente<tspan fill="#FF8C38">Code</tspan></text>
+</svg>

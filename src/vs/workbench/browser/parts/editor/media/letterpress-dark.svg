@@ -1,14 +1,39 @@
-<svg width="260" height="260" viewBox="0 0 512 512" opacity="0.25" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="lpGradDark" x1="80" y1="180" x2="432" y2="332" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#FFB347"/>
-      <stop offset="100%" stop-color="#E85D35"/>
-    </linearGradient>
+    <mask id="crossoverGap">
+      <rect width="512" height="512" fill="white" />
+      <path d="M 151 178 C 209 178, 303 334, 361 334" stroke="black" stroke-width="26" stroke-linecap="round" fill="none"/>
+      <path d="M 151 206 C 209 206, 303 306, 361 306" stroke="black" stroke-width="26" stroke-linecap="round" fill="none"/>
+    </mask>
   </defs>
-  <path d="M 256 256 C 205 176, 95 176, 95 256 C 95 336, 205 336, 256 256 C 307 176, 417 176, 417 256 C 417 336, 307 336, 256 256 Z"
-        stroke="url(#lpGradDark)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M 174 218 L 138 256 L 174 294"
-        stroke="url(#lpGradDark)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M 338 218 L 374 256 L 338 294"
-        stroke="url(#lpGradDark)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- UNDERPASS TRACK -->
+  <g mask="url(#crossoverGap)" stroke="rgba(255, 140, 56, 0.08)" stroke-width="12.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M 151 334 C 209 334, 303 178, 361 178" />
+    <path d="M 151 306 C 209 306, 303 206, 361 206" />
+  </g>
+
+  <!-- OVERPASS TRACK -->
+  <g stroke="rgba(255, 140, 56, 0.08)" stroke-width="12.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M 151 178 C 209 178, 303 334, 361 334" />
+    <path d="M 151 206 C 209 206, 303 306, 361 306" />
+  </g>
+
+  <!-- LEFT LOBE ARCS -->
+  <g stroke="rgba(255, 140, 56, 0.08)" stroke-width="12.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M 151 178 A 78 78 0 0 0 151 334" />
+    <path d="M 151 206 A 50 50 0 0 0 151 306" />
+  </g>
+
+  <!-- RIGHT LOBE ARCS -->
+  <g stroke="rgba(255, 140, 56, 0.08)" stroke-width="12.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M 361 178 A 78 78 0 0 1 361 334" />
+    <path d="M 361 206 A 50 50 0 0 1 361 306" />
+  </g>
+
+  <!-- CHEVRONS < and > -->
+  <g stroke="rgba(255, 140, 56, 0.08)" stroke-width="12.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M 165 224 L 137 256 L 165 288" />
+    <path d="M 347 224 L 375 256 L 347 288" />
+  </g>
 </svg>

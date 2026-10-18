@@ -1,4 +1,4 @@
-<svg width="600" height="200" viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="600" height="180" viewBox="0 0 600 180" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <style>
       .brand-title { fill: #1F2328; }
@@ -6,20 +6,35 @@
         .brand-title { fill: #F0F6FC; }
       }
     </style>
-    <linearGradient id="agenteGradLogo" x1="40" y1="60" x2="190" y2="140" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#FFB347"/>
-      <stop offset="35%" stop-color="#FF8C38"/>
-      <stop offset="70%" stop-color="#E85D35"/>
-      <stop offset="100%" stop-color="#C83B28"/>
-    </linearGradient>
+    <mask id="logoCrossoverGap">
+      <rect width="600" height="180" fill="white" />
+      <path d="M 74 61 C 97 61, 135 123, 158 123" stroke="black" stroke-width="11" stroke-linecap="round" fill="none"/>
+      <path d="M 74 72 C 97 72, 135 112, 158 112" stroke="black" stroke-width="11" stroke-linecap="round" fill="none"/>
+    </mask>
   </defs>
-  <g transform="translate(10, 10) scale(0.35)">
-    <path d="M 256 256 C 205 176, 95 176, 95 256 C 95 336, 205 336, 256 256 Z"
-          stroke="url(#agenteGradLogo)" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M 174 218 L 138 256 L 174 294"
-          stroke="url(#agenteGradLogo)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M 338 218 L 374 256 L 338 294"
-          stroke="url(#agenteGradLogo)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- SYMBOL: Flat Orange Dual Track -->
+  <g mask="url(#logoCrossoverGap)" stroke="#FF8C38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M 74 123 C 97 123, 135 61, 158 61" />
+    <path d="M 74 112 C 97 112, 135 72, 158 72" />
   </g>
-  <text class="brand-title" x="200" y="115" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" letter-spacing="-0.5">Agente<tspan fill="#FF8C38">Code</tspan></text>
+  <g stroke="#FF8C38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M 74 61 C 97 61, 135 123, 158 123" />
+    <path d="M 74 72 C 97 72, 135 112, 158 112" />
+  </g>
+  <g stroke="#FF8C38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M 74 61 A 31 31 0 0 0 74 123" />
+    <path d="M 74 72 A 20 20 0 0 0 74 112" />
+  </g>
+  <g stroke="#FF8C38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M 158 61 A 31 31 0 0 1 158 123" />
+    <path d="M 158 72 A 20 20 0 0 1 158 112" />
+  </g>
+  <g stroke="#FF8C38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M 80 79 L 69 92 L 80 105" />
+    <path d="M 152 79 L 163 92 L 152 105" />
+  </g>
+
+  <!-- TYPOGRAPHY -->
+  <text class="brand-title" x="215" y="106" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" letter-spacing="-1">Agente<tspan fill="#FF8C38">Code</tspan></text>
 </svg>

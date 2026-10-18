@@ -113,7 +113,7 @@ Quatro paletas, cada uma com variante **normal** (painéis com tons distintos) e
 
 1. **Clonar o Repositório:**
    ```bash
-   git clone https://github.com/AlessandroLobo/agentecode.git
+   git clone https://github.com/agentecode/agentecode.git
    cd agentecode/core
    ```
 
@@ -136,8 +136,8 @@ Quatro paletas, cada uma com variante **normal** (painéis com tons distintos) e
 
 ## 📦 Distribuição e Download
 
-- **Instalador Oficial para Windows (x64):** Baixe o executável `AgenteCodeSetup-x64.exe` na página de [Releases](https://github.com/AlessandroLobo/agentecode/releases).
-- **Página Oficial do Projeto:** [alessandrolobo.github.io/agentecode](https://alessandrolobo.github.io/agentecode)
+- **Instalador Oficial para Windows (x64):** Baixe o executável `AgenteCodeSetup-x64.exe` na página de [Releases](https://github.com/agentecode/agentecode/releases).
+- **Página Oficial do Projeto:** [agentecode.github.io](https://agentecode.github.io)
 
 ---
 

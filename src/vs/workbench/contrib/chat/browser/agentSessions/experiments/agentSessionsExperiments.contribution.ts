@@ -255,12 +255,7 @@ MenuRegistry.appendMenuItem(MenuId.CommandCenter, {
 	submenu: MenuId.AgentsTitleBarControlMenu,
 	title: localize('agentsControl', "Agents"),
 	icon: Codicon.chatSparkle,
-	when: ContextKeyExpr.and(
-		ChatContextKeys.enabled,
-		ContextKeyExpr.notEquals(`config.${ChatConfiguration.AgentStatusEnabled}`, 'hidden'),
-		ContextKeyExpr.notEquals(`config.${ChatConfiguration.AgentStatusEnabled}`, false),
-		InEditorZenModeContext.negate()
-	),
+	when: ContextKeyExpr.false(),
 	order: 10002 // to the right of the chat button
 });
 
@@ -270,13 +265,7 @@ MenuRegistry.appendMenuItem(MenuId.TitleBar, {
 	title: localize('title4', "Chat"),
 	group: 'navigation',
 	icon: Codicon.chatSparkle,
-	when: ContextKeyExpr.and(
-		ChatContextKeys.supported,
-		ContextKeyExpr.and(
-			ChatContextKeys.Setup.hidden.negate(),
-		),
-		ContextKeyExpr.has('config.window.commandCenter').negate(),
-	),
+	when: ContextKeyExpr.false(),
 	order: 1
 });
 

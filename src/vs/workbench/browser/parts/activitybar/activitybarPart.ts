@@ -44,10 +44,10 @@ import { IHostService } from '../../../services/host/browser/host.js';
 
 export class ActivitybarPart extends Part {
 
-	static readonly ACTION_HEIGHT = 48;
+	static readonly ACTION_HEIGHT = 42;
 	static readonly COMPACT_ACTION_HEIGHT = 28;
 
-	static readonly ACTIVITYBAR_WIDTH = 48;
+	static readonly ACTIVITYBAR_WIDTH = 42;
 	static readonly COMPACT_ACTIVITYBAR_WIDTH = 36;
 
 	/** Narrower dimensions used when the floating panels (Modern UI) experiment is enabled. */
@@ -67,7 +67,7 @@ export class ActivitybarPart extends Part {
 	 */
 	static readonly FLOATING_COMPACT_ACTION_GAP = 4;
 
-	static readonly ICON_SIZE = 24;
+	static readonly ICON_SIZE = 18;
 	static readonly COMPACT_ICON_SIZE = 16;
 
 	/**

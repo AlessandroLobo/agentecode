@@ -3025,7 +3025,7 @@ class LayoutStateModel extends Disposable {
 		const mainContainerDimension = configuration.mainContainerDimension;
 		LayoutStateKeys.SIDEBAR_SIZE.defaultValue = Math.min(300, mainContainerDimension.width / 4);
 		LayoutStateKeys.SIDEBAR_HIDDEN.defaultValue = workbenchState === WorkbenchState.EMPTY || auxiliaryBarForceMaximized === true;
-		LayoutStateKeys.AUXILIARYBAR_SIZE.defaultValue = auxiliaryBarForceMaximized ? Math.max(300, mainContainerDimension.width / 2) : Math.min(300, mainContainerDimension.width / 4);
+		LayoutStateKeys.AUXILIARYBAR_SIZE.defaultValue = auxiliaryBarForceMaximized ? Math.max(300, mainContainerDimension.width / 2) : Math.min(450, Math.max(380, mainContainerDimension.width * 0.3));
 		LayoutStateKeys.AUXILIARYBAR_HIDDEN.defaultValue = (() => {
 			if (isWeb && !this.environmentService.remoteAuthority) {
 				return true; // not required in web if unsupported
@@ -3035,30 +3035,14 @@ class LayoutStateModel extends Disposable {
 				return false; // forced to be visible
 			}
 
-			// Unless auxiliary bar visibility is explicitly configured, make
-			// sure to not force open it in case we know it was empty before.
+			// Respect visibility setting if explicitly set to hidden by user
 			const configuration = this.configurationService.inspect(WorkbenchLayoutSettings.AUXILIARYBAR_DEFAULT_VISIBILITY);
-			if (configuration.defaultValue !== 'hidden' && !isConfigured(configuration) && this.stateCache.get(LayoutStateKeys.AUXILIARYBAR_EMPTY.name)) {
+			if (configuration.value === 'hidden') {
 				return true;
 			}
 
-			// New users: Show auxiliary bar even in empty workspaces,
-			// but not if the user explicitly hides it or AI features are disabled.
-			if (
-				this.isNew[StorageScope.APPLICATION] &&
-				configuration.value !== 'hidden' &&
-				!this.configurationService.getValue<boolean>(ChatAIDisabledSettingId)
-			) {
-				return false;
-			}
-
-			// Respect visibility setting
-			switch (configuration.value) {
-				case 'hidden':
-					return true;
-				default:
-					return false;
-			}
+			// AgenteCode: Barra lateral secundaria com Claude Code aberta por padrao
+			return false;
 		})();
 		LayoutStateKeys.PANEL_SIZE.defaultValue = (this.stateCache.get(LayoutStateKeys.PANEL_POSITION.name) ?? isHorizontal(LayoutStateKeys.PANEL_POSITION.defaultValue)) ? mainContainerDimension.height / 3 : mainContainerDimension.width / 4;
 		LayoutStateKeys.PANEL_POSITION.defaultValue = positionFromString(this.configurationService.getValue(WorkbenchLayoutSettings.PANEL_POSITION) ?? 'bottom');

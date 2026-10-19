@@ -340,8 +340,8 @@ export class Extension implements IExtension {
 			if (!this.gallery || !this.local) {
 				return false;
 			}
-			// Do not allow updating system extensions in stable
-			if (this.type === ExtensionType.System && this.productService.quality === 'stable' && !this.productService.builtInExtensionsEnabledWithAutoUpdates?.some(id => id.toLowerCase() === this.identifier.id.toLowerCase())) {
+			// Do not allow updating system extensions unless explicitly enabled in builtInExtensionsEnabledWithAutoUpdates
+			if (this.type === ExtensionType.System && !this.productService.builtInExtensionsEnabledWithAutoUpdates?.some(id => id.toLowerCase() === this.identifier.id.toLowerCase())) {
 				return false;
 			}
 			if (!this.local.preRelease && this.gallery.properties.isPreReleaseVersion) {

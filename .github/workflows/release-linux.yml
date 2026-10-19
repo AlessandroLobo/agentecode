@@ -1,0 +1,97 @@
+name: Release Linux
+
+# Gera o pacote .deb do AgenteCode para Linux (x64).
+# Execução SOMENTE manual enquanto o build do Linux é validado; não dispara por tag.
+# Nada é publicado a menos que o campo "tag" seja preenchido com uma tag que já exista.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Nome da versão para o arquivo (ex.: v0.0.1-test)'
+        required: true
+        default: 'v0.0.0-dev'
+      tag:
+        description: 'Opcional: tag existente cuja Release receberá o .deb. Vazio = só gera o artefato.'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  linux-x64:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 240
+    env:
+      VSCODE_ARCH: x64
+      npm_config_arch: x64
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ELECTRON_SKIP_BINARY_DOWNLOAD: 1
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+      ONNXRUNTIME_NODE_INSTALL: skip
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Dependências do sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libxkbfile-dev libkrb5-dev libx11-dev libsecret-1-dev libgbm1 fakeroot dpkg-dev
+
+      - name: Dependências do projeto (toolchain do VS Code para Linux)
+        run: |
+          set -e
+          source ./build/azure-pipelines/linux/setup-env.sh
+          node build/npm/preinstall.ts
+          for i in 1 2 3 4 5; do
+            npm ci && break
+            if [ "$i" -eq 5 ]; then echo "npm ci falhou 5 vezes" >&2; exit 1; fi
+            echo "npm ci falhou ($i), tentando de novo..."
+          done
+
+      - name: Baixar extensões embutidas
+        run: node build/lib/builtInExtensions.ts
+
+      - name: Compilar
+        run: npm run gulp core-ci
+
+      - name: Empacotar o cliente
+        run: npm run gulp vscode-linux-x64-min-ci
+
+      - name: Gerar o pacote .deb
+        run: |
+          set -e
+          npm run gulp vscode-linux-x64-prepare-deb
+          npm run gulp vscode-linux-x64-build-deb
+
+      - name: Nomear o arquivo e calcular o SHA-256
+        id: pack
+        run: |
+          set -e
+          mkdir -p dist
+          deb=$(ls .build/linux/deb/*/deb/*.deb | head -n1)
+          name="AgenteCode-linux-x64-${{ inputs.version }}.deb"
+          cp "$deb" "dist/$name"
+          (cd dist && sha256sum "$name" > "$name.sha256")
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          ls -la dist
+
+      - name: Guardar como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: AgenteCode-linux-x64
+          path: dist/*
+          if-no-files-found: error
+
+      - name: Anexar à Release (só se uma tag foi informada)
+        if: inputs.tag != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          files: dist/*
+          prerelease: ${{ contains(inputs.tag, '-') }}

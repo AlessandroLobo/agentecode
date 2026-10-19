@@ -92,28 +92,28 @@ interface IMcpRegistryResponse {
 	readonly mcp_registries: ReadonlyArray<IMcpRegistryProvider>;
 }
 
-function toDefaultAccountConfig(defaultChatAgent: IDefaultChatAgent): IDefaultAccountConfig {
+function toDefaultAccountConfig(defaultChatAgent: IDefaultChatAgent | undefined): IDefaultAccountConfig {
 	return {
 		preferredExtensions: [
-			defaultChatAgent.chatExtensionId,
-			defaultChatAgent.extensionId,
+			defaultChatAgent?.chatExtensionId ?? '',
+			defaultChatAgent?.extensionId ?? '',
 		],
 		authenticationProvider: {
 			default: {
-				id: defaultChatAgent.provider.default.id,
-				name: defaultChatAgent.provider.default.name,
+				id: defaultChatAgent?.provider?.default?.id ?? 'github',
+				name: defaultChatAgent?.provider?.default?.name ?? 'GitHub',
 			},
 			enterprise: {
-				id: defaultChatAgent.provider.enterprise.id,
-				name: defaultChatAgent.provider.enterprise.name,
+				id: defaultChatAgent?.provider?.enterprise?.id ?? 'github-enterprise',
+				name: defaultChatAgent?.provider?.enterprise?.name ?? 'GHE.com',
 			},
-			enterpriseProviderConfig: `${defaultChatAgent.completionsAdvancedSetting}.authProvider`,
-			scopes: defaultChatAgent.providerScopes,
+			enterpriseProviderConfig: `${defaultChatAgent?.completionsAdvancedSetting ?? 'github.copilot.advanced'}.authProvider`,
+			scopes: defaultChatAgent?.providerScopes ?? [],
 		},
-		entitlementUrl: defaultChatAgent.entitlementUrl,
-		tokenEntitlementUrl: defaultChatAgent.tokenEntitlementUrl,
-		mcpRegistryDataUrl: defaultChatAgent.mcpRegistryDataUrl,
-		managedSettingsUrl: defaultChatAgent.managedSettingsUrl,
+		entitlementUrl: defaultChatAgent?.entitlementUrl ?? '',
+		tokenEntitlementUrl: defaultChatAgent?.tokenEntitlementUrl ?? '',
+		mcpRegistryDataUrl: defaultChatAgent?.mcpRegistryDataUrl ?? '',
+		managedSettingsUrl: defaultChatAgent?.managedSettingsUrl ?? '',
 	};
 }
 

@@ -29,6 +29,7 @@ import { INotificationService, Severity } from '../../../../platform/notificatio
 import { ConfigurationTarget, IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import product from '../../../../platform/product/common/product.js';
+import { IDefaultChatAgent } from '../../../../base/common/product.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { IPathService } from '../../../services/path/common/pathService.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
@@ -78,8 +79,48 @@ type OnboardingActionEvent = {
 
 type EnterpriseSignInUiState = 'options' | 'instance' | 'progress';
 
-assertDefined(product.defaultChatAgent, 'Onboarding requires a default chat agent product configuration.');
-const defaultChat = product.defaultChatAgent;
+const fallbackChatAgent: IDefaultChatAgent = {
+	extensionId: '',
+	chatExtensionId: '',
+	chatExtensionOutputId: '',
+	chatExtensionOutputExtensionStateCommand: '',
+	documentationUrl: '',
+	skusDocumentationUrl: '',
+	optimizeUsageDocumentationUrl: '',
+	publicCodeMatchesUrl: '',
+	managePlanUrl: '',
+	upgradePlanUrl: '',
+	signUpUrl: '',
+	termsStatementUrl: '',
+	privacyStatementUrl: '',
+	provider: {
+		default: { id: 'github', name: 'GitHub' },
+		enterprise: { id: 'github-enterprise', name: 'GHE.com' },
+		google: { id: 'google', name: 'Google' },
+		apple: { id: 'apple', name: 'Apple' },
+		microsoft: { id: 'microsoft', name: 'Microsoft' }
+	},
+	providerExtensionId: '',
+	providerUriSetting: 'github-enterprise.uri',
+	providerScopes: [],
+	entitlementUrl: '',
+	entitlementSignupLimitedUrl: '',
+	tokenEntitlementUrl: '',
+	mcpRegistryDataUrl: '',
+	managedSettingsUrl: '',
+	chatQuotaExceededContext: '',
+	completionsQuotaExceededContext: '',
+	walkthroughCommand: '',
+	completionsMenuCommand: '',
+	chatRefreshTokenCommand: '',
+	generateCommitMessageCommand: '',
+	resolveMergeConflictsCommand: '',
+	completionsAdvancedSetting: '',
+	completionsEnablementSetting: '',
+	nextEditSuggestionsSetting: ''
+};
+
+const defaultChat: IDefaultChatAgent = product.defaultChatAgent ?? fallbackChatAgent;
 
 /**
  * Variation A — Classic Wizard Modal

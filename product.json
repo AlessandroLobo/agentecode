@@ -1,15 +1,51 @@
 {
 	"nameShort": "AgenteCode",
-	"nameLong": "AgenteCode",
+	"nameLong": "Agente Code IDE",
 	"applicationName": "agentecode",
+	"quality": "stable",
 	"dataFolderName": ".agentecode",
 	"sharedDataFolderName": ".agentecode-shared",
 	"win32MutexName": "agentecode",
 	"licenseName": "MIT",
 	"configurationDefaults": {
 		"workbench.colorTheme": "AgenteCode Deep Teal Clean",
+		"window.title": "${dirty}${rootName}${separator}${appName}${separator}${activeEditorShort}",
+		"window.commandCenter": false,
 		"telemetry.telemetryLevel": "off",
-		"dotnetAcquisitionExtension.enableTelemetry": false
+		"dotnetAcquisitionExtension.enableTelemetry": false,
+		"workbench.welcomePage.experimentalOnboarding": false,
+		"chat.commandCenter.enabled": false,
+		"extensions.verifySignature": false,
+		"csharp-dev-tools.semanticColors.theme": "off",
+		"editor.semanticTokenColorCustomizations": {
+			"rules": {
+				"interface": { "foreground": "#b8ce82" },
+				"namespace": "#cccccc",
+				"enum": "#b8ce82",
+				"struct": { "foreground": "#86C691" },
+				"inactive": { "foreground": "#6A6A6A" }
+			}
+		},
+		"editor.tokenColorCustomizations": {
+			"textMateRules": [
+				{
+					"scope": "entity.name.type.interface.cs",
+					"settings": { "foreground": "#b8ce82" }
+				},
+				{
+					"scope": "entity.name.type.enum.cs",
+					"settings": { "foreground": "#b8ce82" }
+				},
+				{
+					"scope": "entity.name.type.struct.cs",
+					"settings": { "foreground": "#86C691" }
+				},
+				{
+					"scope": "variable.other.enummember.cs",
+					"settings": { "foreground": "#4FC1FF" }
+				}
+			]
+		}
 	},
 	"licenseUrl": "https://github.com/agentecode/agentecode/blob/HEAD/LICENSE.txt",
 	"serverLicenseUrl": "https://github.com/agentecode/agentecode/blob/HEAD/LICENSE.txt",
@@ -20,14 +56,14 @@
 	"serverDataFolderName": ".agentecode-server",
 	"tunnelApplicationName": "agentecode-tunnel",
 	"win32DirName": "AgenteCode",
-	"win32NameVersion": "AgenteCode",
+	"win32NameVersion": "Agente Code IDE",
 	"win32RegValueName": "AgenteCode",
 	"win32x64AppId": "{{5AA07492-97ED-45F4-9CF6-B8E405AE3676}",
 	"win32arm64AppId": "{{6413330E-1FF0-4EAA-8E29-5AC57A39AEE8}",
 	"win32x64UserAppId": "{{F6C31F92-5CE9-4DA4-90E9-7E399000EBFE}",
 	"win32arm64UserAppId": "{{5E8A1206-441E-4267-B290-8E43B45781BD}",
 	"win32AppUserModelId": "AgenteCode.IDE",
-	"win32ShellNameShort": "Agente&Code",
+	"win32ShellNameShort": "Agente Code",
 	"win32TunnelServiceMutex": "agentecode-tunnelservice",
 	"win32TunnelMutex": "agentecode-tunnel",
 	"darwinBundleIdentifier": "com.agentecode.ide",
@@ -108,7 +144,7 @@
 		},
 		{
 			"name": "anthropic.claude-code",
-			"version": "2.1.300",
+			"version": "2.1.303",
 			"repo": "https://github.com/anthropics/claude-code",
 			"openVsxTargetPlatform": true,
 			"metadata": {
@@ -268,24 +304,17 @@
 		"ms-mssql.mssql"
 	],
 	"sessionsWindowAllowedExtensions": [],
-	"extensionsGallery": {
-		"serviceUrl": "https://open-vsx.org/vscode/gallery",
-		"itemUrl": "https://open-vsx.org/vscode/item",
-		"resourceUrlTemplate": "https://open-vsx.org/vscode/unpkg/{publisher}/{name}/{version}/{path}",
-		"controlUrl": "https://open-vsx.org/vscode/control"
-	},
 	"defaultChatAgent": {
 		"extensionId": "GitHub.copilot",
 		"chatExtensionId": "GitHub.copilot-chat",
-		"chatExtensionOutputId": "GitHub.copilot-chat.GitHub Copilot Chat.log",
-		"chatExtensionOutputExtensionStateCommand": "github.copilot.debug.extensionState",
 		"documentationUrl": "https://aka.ms/github-copilot-overview",
 		"termsStatementUrl": "https://aka.ms/github-copilot-terms-statement",
 		"privacyStatementUrl": "https://aka.ms/github-copilot-privacy-statement",
 		"skusDocumentationUrl": "https://aka.ms/github-copilot-plans",
-		"optimizeUsageDocumentationUrl": "https://aka.ms/token-usage-tips",
 		"publicCodeMatchesUrl": "https://aka.ms/github-copilot-match-public-code",
+		"manageSettingsUrl": "https://aka.ms/github-copilot-settings",
 		"managePlanUrl": "https://aka.ms/github-copilot-manage-plan",
+		"manageOverageUrl": "https://aka.ms/github-copilot-manage-overage",
 		"upgradePlanUrl": "https://aka.ms/github-copilot-upgrade-plan",
 		"signUpUrl": "https://aka.ms/github-sign-up",
 		"provider": {
@@ -295,7 +324,7 @@
 			},
 			"enterprise": {
 				"id": "github-enterprise",
-				"name": "GHE"
+				"name": "GHE.com"
 			},
 			"google": {
 				"id": "google",
@@ -304,26 +333,21 @@
 			"apple": {
 				"id": "apple",
 				"name": "Apple"
-			},
-			"microsoft": {
-				"id": "microsoft",
-				"name": "Microsoft"
 			}
 		},
-		"providerExtensionId": "vscode.github-authentication",
 		"providerUriSetting": "github-enterprise.uri",
 		"providerScopes": [
-			[
-				"read:user",
-				"user:email",
-				"repo",
-				"workflow"
-			],
 			[
 				"user:email"
 			],
 			[
 				"read:user"
+			],
+			[
+				"read:user",
+				"user:email",
+				"repo",
+				"workflow"
 			]
 		],
 		"entitlementUrl": "https://api.github.com/copilot_internal/user",
@@ -332,15 +356,18 @@
 		"completionsQuotaExceededContext": "github.copilot.completions.quotaExceeded",
 		"walkthroughCommand": "github.copilot.open.walkthrough",
 		"completionsMenuCommand": "github.copilot.toggleStatusMenu",
+		"completionsRefreshTokenCommand": "github.copilot.signIn",
 		"chatRefreshTokenCommand": "github.copilot.refreshToken",
 		"generateCommitMessageCommand": "github.copilot.git.generateCommitMessage",
 		"resolveMergeConflictsCommand": "github.copilot.git.resolveMergeConflicts",
 		"completionsAdvancedSetting": "github.copilot.advanced",
 		"completionsEnablementSetting": "github.copilot.enable",
-		"nextEditSuggestionsSetting": "github.copilot.nextEditSuggestions.enabled",
-		"tokenEntitlementUrl": "https://api.github.com/copilot_internal/v2/token",
-		"mcpRegistryDataUrl": "https://api.github.com/copilot/mcp_registry",
-		"mcpConnectorsUrl": "https://api.github.com/copilot-connectors/api/v1",
-		"managedSettingsUrl": "https://api.github.com/copilot_internal/managed_settings"
+		"nextEditSuggestionsSetting": "github.copilot.nextEditSuggestions.enabled"
+	},
+	"extensionsGallery": {
+		"serviceUrl": "https://open-vsx.org/vscode/gallery",
+		"itemUrl": "https://open-vsx.org/vscode/item",
+		"resourceUrlTemplate": "https://open-vsx.org/vscode/unpkg/{publisher}/{name}/{version}/{path}",
+		"controlUrl": "https://open-vsx.org/vscode/control"
 	}
 }

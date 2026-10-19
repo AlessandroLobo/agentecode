@@ -416,7 +416,7 @@ class ViewsExtensionHandler implements IWorkbenchContribution {
 				hideIfEmpty: true,
 				order,
 				icon,
-			}, location);
+			}, location, { isDefault: location === ViewContainerLocation.AuxiliaryBar && id === 'claude-sidebar-secondary' });
 
 		}
 

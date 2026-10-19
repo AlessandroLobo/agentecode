@@ -102,6 +102,18 @@ export class StartupPageRunnerContribution extends Disposable implements IWorkbe
 
 		this.tryShowOnboarding();
 		this.run().then(undefined, onUnexpectedError);
+
+		// AgenteCode: Start with Claude Code panel open in the right auxiliary bar
+		this.lifecycleService.when(LifecyclePhase.Eventually).then(async () => {
+			if (!this.layoutService.isVisible(Parts.AUXILIARYBAR_PART)) {
+				try {
+					await this.commandService.executeCommand('claude-vscode.sidebar.open');
+				} catch {
+					this.layoutService.setPartHidden(false, Parts.AUXILIARYBAR_PART);
+				}
+			}
+		});
+
 		this._register(this.editorService.onDidCloseEditor((e) => {
 			if (e.editor instanceof GettingStartedInput) {
 				e.editor.selectedCategory = undefined;
@@ -234,9 +246,8 @@ export class StartupPageRunnerContribution extends Disposable implements IWorkbe
 	}
 
 	private tryShowOnboarding(): void {
-		if (this.environmentService.skipWelcome) {
-			return; // skip welcome flag is set
-		}
+		return; // AgenteCode: Copilot onboarding modal disabled in favor of Claude Code
+
 
 		if (isWeb) {
 			return; // not supported on web (e.g. codespaces, github.dev)

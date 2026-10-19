@@ -7,6 +7,7 @@
 	"win32MutexName": "agentecode",
 	"licenseName": "MIT",
 	"configurationDefaults": {
+		"workbench.colorTheme": "AgenteCode Deep Teal Clean",
 		"telemetry.telemetryLevel": "off",
 		"dotnetAcquisitionExtension.enableTelemetry": false
 	},

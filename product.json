@@ -142,6 +142,21 @@
 			}
 		},
 		{
+			"name": "ms-ceintl.vscode-language-pack-pt-br",
+			"version": "1.131.0",
+			"repo": "https://github.com/microsoft/vscode-loc",
+			"metadata": {
+				"id": "ms-ceintl.vscode-language-pack-pt-br",
+				"publisherId": {
+					"publisherId": "ms-ceintl",
+					"publisherName": "MS-CEINTL",
+					"displayName": "Microsoft",
+					"flags": "verified"
+				},
+				"publisherDisplayName": "Microsoft"
+			}
+		},
+		{
 			"name": "anthropic.claude-code",
 			"version": "2.1.303",
 			"repo": "https://github.com/anthropics/claude-code",
@@ -298,6 +313,7 @@
 	"builtInExtensionsEnabledWithAutoUpdates": [
 		"ms-dotnettools.vscode-dotnet-runtime",
 		"anthropic.claude-code",
+		"ms-ceintl.vscode-language-pack-pt-br",
 		"alessandrolobo.claude-usage-statusbar-metric",
 		"HellFiveOsborn.markhub",
 		"ms-mssql.mssql"

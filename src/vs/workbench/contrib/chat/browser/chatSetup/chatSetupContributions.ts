@@ -39,6 +39,7 @@ import { ToggleTitleBarConfigAction } from '../../../../browser/parts/titlebar/t
 import { ACCOUNTS_SHARED_SIGN_IN_GROUP } from '../../../../common/activity.js';
 import { IWorkbenchContribution } from '../../../../common/contributions.js';
 import { IViewDescriptorService, ViewContainerLocation } from '../../../../common/views.js';
+import { IAuthenticationService } from '../../../../services/authentication/common/authentication.js';
 import { ChatEntitlement, ChatEntitlementContext, ChatEntitlementRequests, ChatEntitlementService, IChatEntitlementService, isProUser } from '../../../../services/chat/common/chatEntitlementService.js';
 import { EnablementState, IWorkbenchExtensionEnablementService } from '../../../../services/extensionManagement/common/extensionManagement.js';
 import { ExtensionUrlHandlerOverrideRegistry, IExtensionUrlHandlerOverride } from '../../../../services/extensions/browser/extensionUrlHandler.js';
@@ -375,23 +376,16 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 			constructor() {
 				super({
 					id: 'workbench.action.chat.triggerSetupFromAccounts',
-					title: localize2('triggerChatSetupFromAccounts', "Sign in to use GitHub Copilot..."),
+					title: localize2('signInWithGitHubFromAccounts', "Sign in with GitHub..."),
 					menu: {
 						id: MenuId.AccountsContext,
 						group: ACCOUNTS_SHARED_SIGN_IN_GROUP,
-						// Keep Copilot sign-in available after prior setup and alongside non-Copilot models.
-						when: ChatSetupFromAccountsWhen,
 					}
 				});
 			}
 
 			override async run(accessor: ServicesAccessor): Promise<void> {
-				const commandService = accessor.get(ICommandService);
-				const telemetryService = accessor.get(ITelemetryService);
-
-				telemetryService.publicLog2<WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification>('workbenchActionExecuted', { id: CHAT_SETUP_ACTION_ID, from: 'accounts' });
-
-				return commandService.executeCommand(CHAT_SETUP_ACTION_ID, undefined, { telemetrySource: ChatSetupSource.Accounts });
+				await accessor.get(IAuthenticationService).createSession('github', ['read:user', 'user:email']);
 			}
 		}
 

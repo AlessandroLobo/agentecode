@@ -11,8 +11,8 @@
 		"telemetry.telemetryLevel": "off",
 		"dotnetAcquisitionExtension.enableTelemetry": false
 	},
-	"licenseUrl": "https://github.com/agentecode/agentecode/blob/main/LICENSE.txt",
-	"serverLicenseUrl": "https://github.com/agentecode/agentecode/blob/main/LICENSE.txt",
+	"licenseUrl": "https://github.com/agentecode/agentecode/blob/HEAD/LICENSE.txt",
+	"serverLicenseUrl": "https://github.com/agentecode/agentecode/blob/HEAD/LICENSE.txt",
 	"serverGreeting": [],
 	"serverLicense": [],
 	"serverLicensePrompt": "",

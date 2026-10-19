@@ -2,7 +2,6 @@
 	"nameShort": "AgenteCode",
 	"nameLong": "Agente Code IDE",
 	"applicationName": "agentecode",
-	"quality": "stable",
 	"dataFolderName": ".agentecode",
 	"sharedDataFolderName": ".agentecode-shared",
 	"win32MutexName": "agentecode",

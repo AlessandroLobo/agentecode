@@ -33,7 +33,7 @@ import { ChatAgentLocation, ChatModeKind } from '../common/constants.js';
 import { ChatViewId, ChatViewContainerId } from './chat.js';
 import { ChatViewPane } from './widgetHosts/viewPane/chatViewPane.js';
 import { ChatUpdateRequiredView } from './viewsWelcome/chatUpdateRequiredView.js';
-import { MANAGED_SETTINGS_UPDATE_VIEW_ID, ManagedSettingsUpdateRequiredContext } from '../../../services/policies/common/managedSettingsUpdate.js';
+import { MANAGED_SETTINGS_UPDATE_VIEW_ID } from '../../../services/policies/common/managedSettingsUpdate.js';
 
 // --- Chat Container &  View Registration
 

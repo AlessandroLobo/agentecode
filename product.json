@@ -110,6 +110,7 @@
 			"name": "anthropic.claude-code",
 			"version": "2.1.300",
 			"repo": "https://github.com/anthropics/claude-code",
+			"openVsxTargetPlatform": true,
 			"metadata": {
 				"id": "anthropic.claude-code",
 				"publisherId": {

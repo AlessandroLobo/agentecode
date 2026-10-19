@@ -511,6 +511,19 @@ function patchWin32DependenciesTask(destinationFolderName: string) {
 			const basename = path.basename(dep);
 			const fullPath = path.join(cwd, dep);
 
+			// AgenteCode: extensoes "universais" (ex.: ms-mssql) trazem binarios de outras plataformas
+			// (Mach-O, ELF). So arquivos PE (cabecalho 'MZ') podem ser editados pelo rcedit.
+			const header = Buffer.alloc(2);
+			const fd = await fs.promises.open(fullPath, 'r');
+			try {
+				await fd.read(header, 0, 2, 0);
+			} finally {
+				await fd.close();
+			}
+			if (header.toString('latin1') !== 'MZ') {
+				return;
+			}
+
 			await stripAuthenticodeSignature(fullPath);
 			await rcedit(fullPath, {
 				'file-version': baseVersion,

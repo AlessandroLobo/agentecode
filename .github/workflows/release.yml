@@ -1,0 +1,97 @@
+name: Release
+
+# Gera o instalador do AgenteCode para Windows (x64) e publica na Release.
+# Disparado por tags v* (ex.: v1.0.0) e manualmente.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Nome da versão para o arquivo (ex.: v0.0.1-test). Sem tag, o instalador só vira artefato do job.'
+        required: true
+        default: 'v0.0.0-dev'
+
+permissions:
+  contents: write
+
+jobs:
+  windows-x64:
+    runs-on: windows-latest
+    timeout-minutes: 180
+    env:
+      VSCODE_ARCH: x64
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Dependências
+        run: npm ci
+
+      - name: Baixar extensões embutidas
+        run: node build/lib/builtInExtensions.ts
+
+      - name: Compilar
+        run: npm run gulp core-ci
+
+      - name: Windows SDK no PATH (signtool)
+        shell: pwsh
+        run: |
+          $sdk = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin' -Directory |
+            Where-Object { $_.Name -match '^10\.' -and (Test-Path (Join-Path $_.FullName 'x64\signtool.exe')) } |
+            Sort-Object { [version]$_.Name } -Descending | Select-Object -First 1
+          if (-not $sdk) { throw 'signtool.exe nao encontrado no Windows SDK' }
+          Join-Path $sdk.FullName 'x64' | Out-File -Append -Encoding ascii $env:GITHUB_PATH
+
+      - name: Empacotar o cliente
+        run: |
+          npm run gulp vscode-win32-x64-min-ci
+          npm run gulp vscode-win32-x64-inno-updater
+
+      - name: Gerar o instalador
+        run: npm run gulp vscode-win32-x64-user-setup
+
+      - name: Nomear o arquivo e calcular o SHA-256
+        id: pack
+        shell: pwsh
+        run: |
+          $version = if ('${{ github.ref_type }}' -eq 'tag') { '${{ github.ref_name }}' } else { '${{ inputs.version }}' }
+          $src = Get-ChildItem -Path .build/win32-x64/user-setup -Filter 'AgenteCodeSetup-x64.exe' | Select-Object -First 1
+          if (-not $src) { throw 'Instalador não encontrado em .build/win32-x64/user-setup' }
+          $name = "AgenteCodeSetup-x64-$version.exe"
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item $src.FullName "dist/$name"
+          $hash = (Get-FileHash "dist/$name" -Algorithm SHA256).Hash.ToLower()
+          "$hash  $name" | Out-File -Encoding ascii "dist/$name.sha256"
+          "name=$name" >> $env:GITHUB_OUTPUT
+          "hash=$hash" >> $env:GITHUB_OUTPUT
+
+      - name: Guardar como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: AgenteCode-windows-x64
+          path: dist/*
+          if-no-files-found: error
+
+      - name: Publicar na Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          generate_release_notes: true
+          body: |
+            ## Instalação (Windows x64)
+            Baixe `${{ steps.pack.outputs.name }}` e execute.
+
+            **SHA-256:** `${{ steps.pack.outputs.hash }}`
+
+            Se o Windows mostrar "O Windows protegeu o computador", clique em **Mais informações** e depois em **Executar assim mesmo**. O instalador ainda não tem assinatura digital.

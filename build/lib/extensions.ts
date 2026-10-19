@@ -19,6 +19,7 @@ import ansiColors from 'ansi-colors';
 import * as jsoncParser from 'jsonc-parser';
 import { getProductionDependencies } from './dependencies.ts';
 import { type IExtensionDefinition, getExtensionStream } from './builtInExtensions.ts';
+import { getCurrentExtensionTarget } from './extensionTarget.ts';
 import { fetchUrls, fetchGithub } from './fetch.ts';
 import { createTsgoStream, spawnTsgo } from './tsgo.ts';
 import watcher from './watch/index.ts';
@@ -228,9 +229,18 @@ const baseHeaders = {
 	'X-Market-User-Id': '291C1CD0-051A-4123-9B4B-30D60EF52EE2',
 };
 
-export function fromMarketplace(serviceUrl: string, { name: extensionName, version, sha256, metadata }: IExtensionDefinition): Stream {
+export function fromMarketplace(serviceUrl: string, { name: extensionName, version, sha256, metadata, openVsxTargetPlatform }: IExtensionDefinition): Stream {
 	const [publisher, name] = extensionName.split('.');
-	const url = `${serviceUrl}/publishers/${publisher}/vsextensions/${name}/${version}/vspackage`;
+	let url = `${serviceUrl}/publishers/${publisher}/vsextensions/${name}/${version}/vspackage`;
+	if (openVsxTargetPlatform) {
+		// AgenteCode: o Open VSX serve por padrao uma plataforma arbitraria (ex.: alpine-arm64).
+		// Pega o pacote da plataforma da build (ex.: win32-x64).
+		const target = getCurrentExtensionTarget();
+		if (!target) {
+			throw new Error(`Cannot resolve the target platform for ${extensionName}`);
+		}
+		url = `https://open-vsx.org/api/${publisher}/${name}/${target}/${version}/file/${publisher}.${name}-${version}@${target}.vsix`;
+	}
 
 	fancyLog('Downloading extension:', ansiColors.yellow(`${extensionName}@${version}`), '...');
 

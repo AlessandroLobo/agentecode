@@ -29,6 +29,11 @@ export interface IExtensionDefinition {
 	 * The matching release asset is resolved by convention as `<name>-<osAlias>-<arch>.vsix`.
 	 */
 	platformSpecific?: { [target: string]: string };
+	/**
+	 * AgenteCode: para extensoes do Open VSX publicadas por plataforma (ex.: anthropic.claude-code),
+	 * baixa o VSIX da plataforma alvo da build em vez da publicacao padrao do registro.
+	 */
+	openVsxTargetPlatform?: boolean;
 	metadata: {
 		id: string;
 		publisherId: {

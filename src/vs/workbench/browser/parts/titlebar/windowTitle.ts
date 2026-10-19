@@ -14,7 +14,7 @@ import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.j
 import { EditorResourceAccessor, Verbosity, SideBySideEditor } from '../../../common/editor.js';
 import { IBrowserWorkbenchEnvironmentService } from '../../../services/environment/browser/environmentService.js';
 import { IWorkspaceContextService, WorkbenchState, IWorkspaceFolder } from '../../../../platform/workspace/common/workspace.js';
-import { isWindows, isWeb, isMacintosh, isNative } from '../../../../base/common/platform.js';
+import { isWindows, isWeb, isMacintosh } from '../../../../base/common/platform.js';
 import { URI } from '../../../../base/common/uri.js';
 import { trim } from '../../../../base/common/strings.js';
 import { template } from '../../../../base/common/labels.js';

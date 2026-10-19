@@ -588,7 +588,6 @@ type NlsConfiguration = {
 
 class ExtensionsScanner extends Disposable {
 
-	private readonly productQuality: string | undefined;
 	private readonly productBuiltInExtensionsEnabledWithAutoUpdates: Set<string>;
 
 	constructor(
@@ -600,7 +599,6 @@ class ExtensionsScanner extends Disposable {
 		@ILogService protected readonly logService: ILogService
 	) {
 		super();
-		this.productQuality = productService.quality;
 		this.productBuiltInExtensionsEnabledWithAutoUpdates = getProductBuiltInExtensionsEnabledWithAutoUpdates(productService, environmentService);
 	}
 

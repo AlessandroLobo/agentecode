@@ -17,7 +17,7 @@ import { Disposable, DisposableStore, toDisposable } from '../../base/common/lif
 import { Schemas, VSCODE_AUTHORITY } from '../../base/common/network.js';
 import { join, posix } from '../../base/common/path.js';
 import { mark } from '../../base/common/performance.js';
-import { IProcessEnvironment, isLinux, isLinuxSnap, isMacintosh, isWindows, OS } from '../../base/common/platform.js';
+import { IProcessEnvironment, isLinux, isMacintosh, isWindows, OS } from '../../base/common/platform.js';
 import { assertType } from '../../base/common/types.js';
 import { URI } from '../../base/common/uri.js';
 import { generateUuid } from '../../base/common/uuid.js';
@@ -89,10 +89,7 @@ import { getPiiPathsFromEnvironment, getTelemetryLevel, isInternalTelemetry, Nul
 import { IUpdateService } from '../../platform/update/common/update.js';
 import { UpdateChannel } from '../../platform/update/common/updateIpc.js';
 import { NotAvailableUpdateDialog } from '../../platform/update/electron-main/notAvailableUpdateDialog.js';
-import { DarwinUpdateService } from '../../platform/update/electron-main/updateService.darwin.js';
-import { LinuxUpdateService } from '../../platform/update/electron-main/updateService.linux.js';
-import { SnapUpdateService } from '../../platform/update/electron-main/updateService.snap.js';
-import { Win32UpdateService } from '../../platform/update/electron-main/updateService.win32.js';
+import { GitHubUpdateService } from '../../platform/update/electron-main/updateService.github.js';
 import { isInnoSetupInstall } from '../../platform/update/electron-main/win32UpdateType.js';
 import { IOpenURLOptions, IURLService } from '../../platform/url/common/url.js';
 import { URLHandlerChannelClient, URLHandlerRouter } from '../../platform/url/common/urlIpc.js';
@@ -1220,24 +1217,8 @@ export class CodeApplication extends Disposable {
 	private async initServices(machineId: string, sqmId: string, devDeviceId: string, sharedProcessReady: Promise<MessagePortClient>): Promise<IInstantiationService> {
 		const services = new ServiceCollection();
 
-		// Update
-		switch (process.platform) {
-			case 'win32':
-				services.set(IUpdateService, new SyncDescriptor(Win32UpdateService));
-				break;
-
-			case 'linux':
-				if (isLinuxSnap) {
-					services.set(IUpdateService, new SyncDescriptor(SnapUpdateService, [process.env['SNAP'], process.env['SNAP_REVISION']]));
-				} else {
-					services.set(IUpdateService, new SyncDescriptor(LinuxUpdateService));
-				}
-				break;
-
-			case 'darwin':
-				services.set(IUpdateService, new SyncDescriptor(DarwinUpdateService));
-				break;
-		}
+		// Update (AgenteCode: checks GitHub Releases instead of the Microsoft update server)
+		services.set(IUpdateService, new SyncDescriptor(GitHubUpdateService));
 
 		// Windows
 		services.set(IWindowsMainService, new SyncDescriptor(WindowsMainService, [machineId, sqmId, devDeviceId, this.userEnv], false));

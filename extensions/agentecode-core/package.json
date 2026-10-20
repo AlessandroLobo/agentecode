@@ -1,0 +1,50 @@
+{
+  "name": "agentecode-core",
+  "displayName": "AgenteCode Core",
+  "description": "Recursos próprios do AgenteCode: exportação de sessões do agente para Markdown.",
+  "version": "1.0.0",
+  "publisher": "agentecode",
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:agentecode.exportSessionToMarkdown"
+  ],
+  "main": "./extension.js",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": false
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "agentecode.exportSessionToMarkdown",
+        "title": "Exportar sessão do agente para Markdown",
+        "category": "AgenteCode"
+      }
+    ],
+    "configuration": {
+      "title": "AgenteCode",
+      "properties": {
+        "agentecode.export.includeToolResults": {
+          "type": "boolean",
+          "default": true,
+          "description": "Inclui, de forma resumida, a saída das ferramentas (comandos, leitura de arquivos) na exportação da sessão para Markdown."
+        },
+        "agentecode.export.maxToolResultChars": {
+          "type": "number",
+          "default": 1500,
+          "minimum": 0,
+          "description": "Tamanho máximo, em caracteres, de cada saída de ferramenta incluída na exportação."
+        }
+      }
+    }
+  }
+}

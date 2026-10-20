@@ -517,6 +517,16 @@ CommandsRegistry.registerCommand('workbench.action.toggleConfirmBeforeClose', ac
 
 // --- Menu Registration
 
+// AgenteCode: the command is contributed by the built-in `agentecode-core` extension.
+MenuRegistry.appendMenuItem(MenuId.GlobalActivity, {
+	group: '6_agent',
+	command: {
+		id: 'agentecode.exportSessionToMarkdown',
+		title: localize('exportAgentSession', "Export Agent Session to Markdown...")
+	},
+	order: 1
+});
+
 MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
 	group: 'z_ConfirmClose',
 	command: {

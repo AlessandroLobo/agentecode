@@ -50,6 +50,7 @@ export const unicodeFilter = Object.freeze<string[]>([
 	'!**/*.provisionprofile',
 
 	'!build/win32/**',
+	'!extensions/agentecode-core/**', // AgenteCode: interface em portugues
 	'!extensions/markdown-language-features/notebook-out/*.js',
 	'!extensions/markdown-language-features/markdown-editor-out/*.js',
 	'!extensions/markdown-math/notebook-out/**',

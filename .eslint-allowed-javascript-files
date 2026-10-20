@@ -165,3 +165,9 @@ test/unit/electron/renderer.js
 test/unit/fullJsonStreamReporter.js
 test/unit/node/index.js
 test/unit/reporter.js
+
+# AgenteCode: extensao embutida propria (decisao do mantenedor do fork, ADR-028)
+extensions/agentecode-core/extension.js
+extensions/agentecode-core/lib/export.js
+extensions/agentecode-core/lib/sessionMarkdown.js
+extensions/agentecode-core/test/core.test.js

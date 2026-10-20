@@ -171,3 +171,8 @@ extensions/agentecode-core/extension.js
 extensions/agentecode-core/lib/export.js
 extensions/agentecode-core/lib/sessionMarkdown.js
 extensions/agentecode-core/test/core.test.js
+extensions/agentecode-core/lib/checkpoints.js
+extensions/agentecode-core/lib/rewind.js
+extensions/agentecode-core/lib/rewindPlan.js
+extensions/agentecode-core/lib/sessionStore.js
+extensions/agentecode-core/lib/sessionsView.js

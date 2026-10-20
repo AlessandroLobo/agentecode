@@ -6,10 +6,12 @@
 'use strict';
 
 const { registerExport } = require('./lib/export');
+const { registerSessionsView } = require('./lib/sessionsView');
 
 /** @param {import('vscode').ExtensionContext} context */
 function activate(context) {
 	registerExport(context);
+	registerSessionsView(context);
 }
 
 function deactivate() { }

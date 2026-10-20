@@ -9,7 +9,7 @@ const vscode = require('vscode');
 const path = require('path');
 const { listSessionFiles, readSessionSummary, exportSessionFile, slugify } = require('./sessionMarkdown');
 
-async function exportSession() {
+async function pickSession() {
 	const folders = (vscode.workspace.workspaceFolders ?? []).map(f => f.uri.fsPath);
 	const files = await listSessionFiles(folders);
 	if (!files.length) {
@@ -30,11 +30,24 @@ async function exportSession() {
 			};
 		})));
 
-	const picked = await vscode.window.showQuickPick(items, {
+	return vscode.window.showQuickPick(items, {
 		title: 'Exportar sessão para Markdown',
 		placeHolder: 'Escolha a sessão que será exportada',
 		matchOnDetail: true,
 	});
+}
+
+/**
+ * @param {{ kind?: string, title?: string, file?: string, id?: string, mtime?: number }} [sessionItem]
+ * Sessao vinda do painel de historico; sem ela, pergunta qual exportar.
+ */
+async function exportSession(sessionItem) {
+	let picked;
+	if (sessionItem?.kind === 'session' && sessionItem.file) {
+		picked = { label: sessionItem.title, file: { file: sessionItem.file, id: sessionItem.id, mtime: sessionItem.mtime } };
+	} else {
+		picked = await pickSession();
+	}
 	if (!picked) {
 		return;
 	}

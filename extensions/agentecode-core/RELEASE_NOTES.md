@@ -2,6 +2,14 @@
 
 Uma seção por versão, da mais nova para a mais antiga. O título de cada seção precisa ter o formato `## vX.Y.Z - data`.
 
+## v1.0.1 - 20/10/2026
+
+Correção na conta do GitHub.
+
+- O item **Sign in with GitHub...** do menu da conta agora **some quando você já está conectado**. Antes ele aparecia sempre e cada clique abria um novo login por código.
+- Se ele for acionado por outro caminho com a conta já conectada, a IDE só avisa "Você já está conectado ao GitHub como ..." e não inicia outro login.
+- O texto "About ... (v1.0.1)" do menu da engrenagem passa a ler a versão do próprio produto.
+
 ## v1.0.0 - 20/10/2026
 
 A primeira versão estável do AgenteCode: uma IDE pensada para trabalhar com agentes, com o Claude Code embutido.

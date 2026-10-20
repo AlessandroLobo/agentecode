@@ -22,12 +22,13 @@ import { IActionViewItemService } from '../../../../../platform/actions/browser/
 import { Action2, MenuId, MenuRegistry, registerAction2 } from '../../../../../platform/actions/common/actions.js';
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { ConfigurationTarget, IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
-import { ContextKeyExpr, IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
+import { ContextKeyExpr, IContextKey, IContextKeyService, RawContextKey } from '../../../../../platform/contextkey/common/contextkey.js';
 import { IsWebContext } from '../../../../../platform/contextkey/common/contextkeys.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { IEnvironmentService } from '../../../../../platform/environment/common/environment.js';
 import { ExtensionIdentifier } from '../../../../../platform/extensions/common/extensions.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { ILogService } from '../../../../../platform/log/common/log.js';
 import { IMarkerService } from '../../../../../platform/markers/common/markers.js';
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
@@ -69,6 +70,9 @@ const defaultChat = {
 
 const SIGN_IN_TITLE_BAR_ACTION_ID = 'workbench.action.chat.signInIndicator';
 
+/** AgenteCode: `true` while there is at least one GitHub account signed in; hides "Sign in with GitHub...". */
+const GITHUB_SIGNED_IN = new RawContextKey<boolean>('agentecode.githubSignedIn', false);
+
 export const ChatSetupFromAccountsWhen = ContextKeyExpr.and(
 	ChatContextKeys.Setup.hidden.negate(),
 	ChatContextKeys.Setup.disabledInWorkspace.negate(),
@@ -91,8 +95,11 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 		@IEnvironmentService private readonly environmentService: IEnvironmentService,
 		@IChatSessionsService private readonly chatSessionsService: IChatSessionsService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@IAuthenticationService private readonly authenticationService: IAuthenticationService,
 	) {
 		super();
+
+		this.trackGitHubSignIn(GITHUB_SIGNED_IN.bindTo(this.contextKeyService));
 
 		const context = chatEntitlementService.context?.value;
 		const requests = chatEntitlementService.requests?.value;
@@ -222,6 +229,33 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 
 		this._register(chatEntitlementService.onDidChangeSentiment(() => updateGrowthSession()));
 		updateGrowthSession();
+	}
+
+	/**
+	 * AgenteCode: keeps the `agentecode.githubSignedIn` context key in sync with the GitHub sessions, without
+	 * activating the authentication provider (it is read once the provider registers and on every change).
+	 */
+	private trackGitHubSignIn(signedIn: IContextKey<boolean>): void {
+		const update = async () => {
+			try {
+				signedIn.set((await this.authenticationService.getSessions('github')).length > 0);
+			} catch {
+				signedIn.set(false);
+			}
+		};
+		this._register(this.authenticationService.onDidChangeSessions(e => {
+			if (e.providerId === 'github') {
+				update();
+			}
+		}));
+		this._register(this.authenticationService.onDidRegisterAuthenticationProvider(provider => {
+			if (provider.id === 'github') {
+				update();
+			}
+		}));
+		if (this.authenticationService.isAuthenticationProviderRegistered('github')) {
+			update();
+		}
 	}
 
 	private registerActions(context: ChatEntitlementContext, requests: ChatEntitlementRequests, controller: Lazy<ChatSetupController>): void {
@@ -380,12 +414,23 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 					menu: {
 						id: MenuId.AccountsContext,
 						group: ACCOUNTS_SHARED_SIGN_IN_GROUP,
+						when: GITHUB_SIGNED_IN.negate(),
 					}
 				});
 			}
 
 			override async run(accessor: ServicesAccessor): Promise<void> {
-				await accessor.get(IAuthenticationService).createSession('github', ['read:user', 'user:email']);
+				const authenticationService = accessor.get(IAuthenticationService);
+				const notificationService = accessor.get(INotificationService);
+
+				// AgenteCode: never start a second login when an account is already signed in.
+				const sessions = await authenticationService.getSessions('github');
+				if (sessions.length > 0) {
+					notificationService.info(localize('alreadySignedInGitHub', "You are already signed in to GitHub as {0}.", sessions[0].account.label));
+					return;
+				}
+
+				await authenticationService.createSession('github', ['read:user', 'user:email']);
 			}
 		}
 

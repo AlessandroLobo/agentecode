@@ -399,8 +399,9 @@ class ShowAboutDialogAction extends Action2 {
 		super({
 			id: 'workbench.action.showAboutDialog',
 			title: {
-				...localize2('aboutAgenteCode', "About {0} (v1.0.0)", product.nameShort),
-				mnemonicTitle: localize({ key: 'miAboutAgenteCode', comment: ['&& denotes a mnemonic'] }, "&&About {0} (v1.0.0)", product.nameShort),
+				// AgenteCode: the version comes from `nameLong` ("Agente Code IDE v1.0.1"), so a release only edits product.json.
+				...localize2('aboutAgenteCode', "About {0} (v{1})", product.nameShort, /\d+\.\d+\.\d+/.exec(product.nameLong)?.[0] ?? ''),
+				mnemonicTitle: localize({ key: 'miAboutAgenteCode', comment: ['&& denotes a mnemonic'] }, "&&About {0} (v{1})", product.nameShort, /\d+\.\d+\.\d+/.exec(product.nameLong)?.[0] ?? ''),
 			},
 			category: Categories.Help,
 			f1: true,

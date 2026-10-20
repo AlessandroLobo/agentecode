@@ -137,7 +137,9 @@
     "peekView.border": "#3cdbc0",
     "peekViewEditor.background": "#00243d",
     "peekViewResult.background": "#001e33",
-    "peekViewTitle.background": "#001a2d"
+    "peekViewTitle.background": "#001a2d",
+    "statusBarItem.warningBackground": "#00000000",
+    "statusBarItem.warningForeground": "#869cae"
   },
   "tokenColors": [
     {

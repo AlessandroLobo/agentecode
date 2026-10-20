@@ -122,7 +122,9 @@
     "list.inactiveSelectionBackground": "#2c313a80",
     "list.inactiveSelectionForeground": "#abb2bf",
     "list.hoverBackground": "#2c313a50",
-    "list.focusBackground": "#2c313a"
+    "list.focusBackground": "#2c313a",
+    "statusBarItem.warningBackground": "#00000000",
+    "statusBarItem.warningForeground": "#9da5b4"
   },
   "tokenColors": [
     {

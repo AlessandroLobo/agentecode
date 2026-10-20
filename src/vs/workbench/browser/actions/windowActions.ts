@@ -37,6 +37,7 @@ import { isFolderBackupInfo, isWorkspaceBackupInfo } from '../../../platform/bac
 import { getActiveElement, getActiveWindow, isHTMLElement } from '../../../base/browser/dom.js';
 import { IWorkbenchEnvironmentService } from '../../services/environment/common/environmentService.js';
 import { isEqual } from '../../../base/common/resources.js';
+import product from '../../../platform/product/common/product.js';
 
 export const inRecentFilesPickerContextKey = 'inRecentFilesPicker';
 
@@ -398,17 +399,24 @@ class ShowAboutDialogAction extends Action2 {
 		super({
 			id: 'workbench.action.showAboutDialog',
 			title: {
-				...localize2('about', "About"),
-				mnemonicTitle: localize({ key: 'miAbout', comment: ['&& denotes a mnemonic'] }, "&&About"),
+				...localize2('aboutAgenteCode', "About {0} (v1.0.0)", product.nameShort),
+				mnemonicTitle: localize({ key: 'miAboutAgenteCode', comment: ['&& denotes a mnemonic'] }, "&&About {0} (v1.0.0)", product.nameShort),
 			},
 			category: Categories.Help,
 			f1: true,
-			menu: {
-				id: MenuId.MenubarHelpMenu,
-				group: 'z_about',
-				order: 1,
-				when: IsMacNativeContext.toNegated()
-			}
+			menu: [
+				{
+					id: MenuId.MenubarHelpMenu,
+					group: 'z_about',
+					order: 1,
+					when: IsMacNativeContext.toNegated()
+				},
+				{
+					id: MenuId.GlobalActivity,
+					group: '9_about',
+					order: 1
+				}
+			]
 		});
 	}
 

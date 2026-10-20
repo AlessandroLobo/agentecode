@@ -8,7 +8,6 @@
 import { spawn } from 'child_process';
 import { mkdir, readdir, rename, rm } from 'fs/promises';
 import { tmpdir } from 'os';
-import { Delayer } from '../../../base/common/async.js';
 import { VSBuffer } from '../../../base/common/buffer.js';
 import { CancellationToken } from '../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../base/common/event.js';
@@ -35,6 +34,8 @@ const UPDATE_URL_OVERRIDE_ENV = 'AGENTECODE_UPDATE_URL';
 const UPDATE_DRY_RUN_ENV = 'AGENTECODE_UPDATE_DRYRUN';
 /** Com valor, baixa a atualização assim que ela é encontrada, sem esperar o clique no menu (para testes). */
 const UPDATE_AUTO_DOWNLOAD_ENV = 'AGENTECODE_UPDATE_AUTODOWNLOAD';
+/** Intervalo mínimo entre atualizações da barra de progresso do download. */
+const PROGRESS_INTERVAL = 500;
 const FIRST_CHECK_DELAY = 30 * 1000;
 const CHECK_INTERVAL = 24 * 60 * 60 * 1000;
 
@@ -244,14 +245,20 @@ export class GitHubUpdateService extends Disposable implements IUpdateService {
 		const lengthHeader = context.res.headers['content-length'];
 		const totalBytes = typeof lengthHeader === 'string' ? parseInt(lengthHeader, 10) : undefined;
 
+		// Progress is throttled (at most one update every 500 ms). A debounce (Delayer) would never fire while
+		// data keeps arriving, leaving the progress bar frozen until the download ends.
 		let downloadedBytes = 0;
-		const progressDelayer = new Delayer<void>(500);
+		let lastProgressUpdate = 0;
 		const progressStream = transform<VSBuffer, VSBuffer>(
 			context.stream,
 			{
 				data: data => {
 					downloadedBytes += data.byteLength;
-					progressDelayer.trigger(async () => this.setState(State.Downloading(update, explicit, false, downloadedBytes, totalBytes, startTime)));
+					const now = Date.now();
+					if (now - lastProgressUpdate >= PROGRESS_INTERVAL) {
+						lastProgressUpdate = now;
+						this.setState(State.Downloading(update, explicit, false, downloadedBytes, totalBytes, startTime));
+					}
 					return data;
 				}
 			},
@@ -269,8 +276,6 @@ export class GitHubUpdateService extends Disposable implements IUpdateService {
 		} catch (error) {
 			await rm(downloadPath, { force: true });
 			throw error;
-		} finally {
-			progressDelayer.dispose();
 		}
 		return installerPath;
 	}

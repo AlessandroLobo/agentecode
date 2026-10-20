@@ -176,3 +176,5 @@ extensions/agentecode-core/lib/rewind.js
 extensions/agentecode-core/lib/rewindPlan.js
 extensions/agentecode-core/lib/sessionStore.js
 extensions/agentecode-core/lib/sessionsView.js
+extensions/agentecode-core/lib/releaseNotes.js
+extensions/agentecode-core/lib/releaseNotesView.js

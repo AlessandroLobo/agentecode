@@ -81,17 +81,18 @@ jobs:
           path: dist/*
           if-no-files-found: error
 
+      - name: Montar o texto da Release
+        if: github.ref_type == 'tag'
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          INSTALLER_NAME: ${{ steps.pack.outputs.name }}
+          INSTALLER_HASH: ${{ steps.pack.outputs.hash }}
+        run: node .github/scripts/release-body.ts
+
       - name: Publicar na Release
         if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*
           prerelease: ${{ contains(github.ref_name, '-') }}
-          generate_release_notes: true
-          body: |
-            ## Instalação (Windows x64)
-            Baixe `${{ steps.pack.outputs.name }}` e execute.
-
-            **SHA-256:** `${{ steps.pack.outputs.hash }}`
-
-            Se o Windows mostrar "O Windows protegeu o computador", clique em **Mais informações** e depois em **Executar assim mesmo**. O instalador ainda não tem assinatura digital.
+          body_path: release-body.md

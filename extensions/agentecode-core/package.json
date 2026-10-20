@@ -1,7 +1,7 @@
 {
   "name": "agentecode-core",
   "displayName": "AgenteCode Core",
-  "description": "Recursos próprios do AgenteCode: histórico de sessões do agente (buscar, retomar, exportar, excluir) e volta de arquivos para antes de uma resposta.",
+  "description": "Recursos próprios do AgenteCode: histórico de sessões do agente, volta de arquivos (checkpoint), exportação para Markdown e notas de versão.",
   "version": "1.0.0",
   "publisher": "agentecode",
   "license": "MIT",
@@ -13,8 +13,10 @@
     "Other"
   ],
   "activationEvents": [
+    "onStartupFinished",
     "onCommand:agentecode.exportSessionToMarkdown",
     "onCommand:agentecode.undoLastRewind",
+    "onCommand:agentecode.showReleaseNotes",
     "onView:agentecode.sessions"
   ],
   "main": "./extension.js",
@@ -72,6 +74,11 @@
         "title": "Voltar arquivos para antes desta resposta",
         "category": "AgenteCode",
         "icon": "$(discard)"
+      },
+      {
+        "command": "agentecode.showReleaseNotes",
+        "title": "Mostrar notas da versão",
+        "category": "AgenteCode"
       }
     ],
     "configuration": {
@@ -100,6 +107,11 @@
             "Em uma nova aba do editor."
           ],
           "description": "Onde o botão Retomar do painel de sessões abre a conversa."
+        },
+        "agentecode.releaseNotes.show": {
+          "type": "boolean",
+          "default": true,
+          "description": "Abre as novidades na primeira vez que o AgenteCode inicia depois de uma atualização."
         }
       }
     },

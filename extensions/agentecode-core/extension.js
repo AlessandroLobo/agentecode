@@ -7,11 +7,13 @@
 
 const { registerExport } = require('./lib/export');
 const { registerSessionsView } = require('./lib/sessionsView');
+const { registerReleaseNotes } = require('./lib/releaseNotesView');
 
 /** @param {import('vscode').ExtensionContext} context */
 function activate(context) {
 	registerExport(context);
 	registerSessionsView(context);
+	registerReleaseNotes(context);
 }
 
 function deactivate() { }

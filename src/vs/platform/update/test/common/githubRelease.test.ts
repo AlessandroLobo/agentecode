@@ -7,7 +7,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IGitHubRelease, isNewerVersion, parseVersion, pickDownloadUrl, toUpdate } from '../../common/githubRelease.js';
+import { buildWindowsInstallScript, IGitHubRelease, isNewerVersion, parseChecksum, parseVersion, pickChecksumUrl, pickDownloadUrl, toUpdate } from '../../common/githubRelease.js';
 
 suite('GitHub release helpers', () => {
 
@@ -18,7 +18,7 @@ suite('GitHub release helpers', () => {
 		html_url: 'https://github.com/agentecode/agentecode/releases/tag/v1.2.0',
 		published_at: '2026-10-20T12:00:00Z',
 		assets: [
-			{ name: 'AgenteCodeSetup-x64-v1.2.0.exe.sha256', browser_download_url: 'https://example.test/hash' },
+			{ name: 'AgenteCodeSetup-x64-v1.2.0.exe.sha256', browser_download_url: 'https://example.test/setup.exe.sha256' },
 			{ name: 'AgenteCodeSetup-x64-v1.2.0.exe', browser_download_url: 'https://example.test/setup.exe' },
 			{ name: 'agentecode_1.2.0_amd64.deb', browser_download_url: 'https://example.test/pkg.deb' },
 		]
@@ -52,12 +52,36 @@ suite('GitHub release helpers', () => {
 		);
 	});
 
+	test('pickChecksumUrl só devolve o .sha256 do instalador da plataforma', () => {
+		assert.deepStrictEqual(
+			[pickChecksumUrl(release, 'win32'), pickChecksumUrl(release, 'linux'), pickChecksumUrl({ assets: [release.assets![1]] }, 'win32')],
+			['https://example.test/setup.exe.sha256', undefined, undefined]
+		);
+	});
+
+	test('parseChecksum lê o formato "hash  nome" e recusa o resto', () => {
+		const hash = 'a'.repeat(64);
+		assert.deepStrictEqual(
+			[parseChecksum(`${hash.toUpperCase()}  AgenteCodeSetup-x64-v1.exe\n`), parseChecksum(hash), parseChecksum('abc  x'), parseChecksum(`<html>${hash}`), parseChecksum(null)],
+			[hash, hash, undefined, undefined, undefined]
+		);
+	});
+
+	test('buildWindowsInstallScript espera a IDE fechar, protege aspas e reabre a IDE', () => {
+		assert.deepStrictEqual(
+			buildWindowsInstallScript(`C:\\Users\\o'brien\\Temp\\Setup.exe`, 4321),
+			`$ErrorActionPreference = 'SilentlyContinue'; Wait-Process -Id 4321 -Timeout 300; Start-Sleep -Seconds 2; Start-Process -FilePath 'C:\\Users\\o''brien\\Temp\\Setup.exe' -ArgumentList '/SILENT', '/NORESTART', '/MERGETASKS=runcode,!desktopicon,!quicklaunchicon'`
+		);
+	});
+
 	test('toUpdate só devolve quando a Release é mais nova', () => {
 		assert.deepStrictEqual(toUpdate(release, '1.0.0', 'win32'), {
 			version: 'v1.2.0',
 			productVersion: '1.2.0',
 			timestamp: Date.parse('2026-10-20T12:00:00Z'),
 			url: 'https://example.test/setup.exe',
+			releaseUrl: release.html_url,
+			sha256Url: 'https://example.test/setup.exe.sha256',
 		});
 		assert.strictEqual(toUpdate(release, '1.2.0', 'win32'), undefined);
 		assert.strictEqual(toUpdate({}, '1.0.0', 'win32'), undefined);

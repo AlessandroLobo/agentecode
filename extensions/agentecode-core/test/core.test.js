@@ -190,3 +190,56 @@ test('volta de arquivos no disco: restaura editado, exclui criado pelo agente e 
 		fs.rmSync(base, { recursive: true, force: true });
 	}
 });
+
+const { parseVersion, notesBetween, sectionFor, parseSections } = require('../lib/releaseNotes');
+
+const NOTES = [
+	'# Novidades',
+	'',
+	'texto solto antes das secoes',
+	'',
+	'## v1.2.0 - 03/12/2026',
+	'- nova 1.2',
+	'',
+	'## v1.1.0 - 02/11/2026',
+	'### Algo',
+	'- nova 1.1',
+	'',
+	'## v1.0.0 - 20/10/2026',
+	'- nova 1.0',
+	'',
+	'## Sem versao no titulo',
+	'- ignorar',
+].join('\n');
+
+test('notas: parseVersion e secoes', () => {
+	assert.deepEqual(parseVersion('v0.0.6-test'), [0, 0, 6]);
+	assert.deepEqual(parseSections(NOTES).map(s => s.version.join('.')), ['1.2.0', '1.1.0', '1.0.0']);
+	assert.ok(!parseSections(NOTES).some(s => s.text.includes('ignorar')), 'titulo sem versao encerra a secao anterior e e descartado');
+});
+
+test('notas: mostra so o que passou entre a versao vista e a atual', () => {
+	assert.match(notesBetween(NOTES, '1.0.0', '1.1.0'), /^## v1\.1\.0/);
+	assert.doesNotMatch(notesBetween(NOTES, '1.0.0', '1.1.0'), /nova 1\.0|nova 1\.2/);
+
+	const skipped = notesBetween(NOTES, '1.0.0', '1.2.0');
+	assert.ok(skipped.indexOf('v1.2.0') < skipped.indexOf('v1.1.0'), 'mais nova primeiro');
+	assert.doesNotMatch(skipped, /nova 1\.0/);
+
+	assert.equal(notesBetween(NOTES, '1.2.0', '1.2.0'), '', 'mesma versao: nada');
+	assert.equal(notesBetween(NOTES, '1.2.0', '1.0.0'), '', 'rebaixar: nada');
+	assert.match(notesBetween(NOTES, undefined, '1.1.0'), /nova 1\.1/, 'sem versao vista: so a atual e anteriores ate ela');
+	assert.equal(notesBetween(NOTES, '1.0.0', 'sem versao'), '');
+});
+
+test('notas: sectionFor aceita tags de pre-lancamento', () => {
+	assert.match(sectionFor(NOTES, 'v1.1.0-rc.1'), /nova 1\.1/);
+	assert.equal(sectionFor(NOTES, 'v9.9.9'), '');
+});
+
+test('notas: o RELEASE_NOTES.md real tem a secao da versao do produto', () => {
+	const real = fs.readFileSync(path.join(__dirname, '..', 'RELEASE_NOTES.md'), 'utf8');
+	const productJson = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'product.json'), 'utf8');
+	const version = parseVersion(/"nameLong":\s*"([^"]+)"/.exec(productJson)[1]).join('.');
+	assert.ok(sectionFor(real, version).length > 100, `faltam notas para a versao ${version}`);
+});

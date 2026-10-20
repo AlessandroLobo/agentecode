@@ -6,7 +6,7 @@
 // allow-any-unicode-comment-file
 
 import { spawn } from 'child_process';
-import { mkdir, readdir, rename, rm } from 'fs/promises';
+import { mkdir, readdir, rename, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { VSBuffer } from '../../../base/common/buffer.js';
 import { CancellationToken } from '../../../base/common/cancellation.js';
@@ -25,7 +25,7 @@ import { INativeHostMainService } from '../../native/electron-main/nativeHostMai
 import { IProductService } from '../../product/common/productService.js';
 import { asJson, asTextOrError, IRequestService } from '../../request/common/request.js';
 import { DisablementReason, IUpdateService, State, StateType, UpdateType } from '../common/update.js';
-import { buildWindowsInstallScript, IGitHubRelease, IGitHubUpdate, parseChecksum, parseVersion, toUpdate } from '../common/githubRelease.js';
+import { buildInstallerArgs, IGitHubRelease, IGitHubUpdate, INSTALL_HELPER_SCRIPT, parseChecksum, parseVersion, toUpdate } from '../common/githubRelease.js';
 
 const LATEST_RELEASE_URL = 'https://api.github.com/repos/agentecode/agentecode/releases/latest';
 /** Variável de ambiente que troca a URL consultada, para testar o aviso sem publicar uma Release. */
@@ -289,21 +289,34 @@ export class GitHubUpdateService extends Disposable implements IUpdateService {
 			return;
 		}
 		const update = this._state.update;
-		const script = buildWindowsInstallScript(this.installerPath, process.pid);
+
+		const dir = path.dirname(this.installerPath);
+		const helperPath = path.join(dir, 'install-helper.js');
+		const helperArgs = [
+			helperPath,
+			String(process.pid),
+			path.join(dir, 'helper.log'),
+			process.execPath,
+			this.installerPath,
+			...buildInstallerArgs(path.join(dir, 'install.log')),
+		];
 
 		if (process.env[UPDATE_DRY_RUN_ENV]) {
-			this.logService.info(`update#quitAndInstall (dry run): powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -Command "${script}"`);
+			this.logService.info(`update#quitAndInstall (dry run): ${process.execPath} ${helperArgs.join(' ')}`);
 			return;
 		}
 
-		// O script espera esta IDE terminar antes de executar o instalador; assim o instalador nunca encontra a IDE aberta.
-		const child = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-Command', script], {
+		// O auxiliar espera esta IDE terminar antes de executar o instalador; assim o instalador nunca encontra a IDE aberta.
+		// É o próprio executável da IDE em modo Node (programa gráfico): PowerShell ou cmd, sendo programas de console,
+		// não iniciam quando criados assim (erro 0xC0000142).
+		await writeFile(helperPath, INSTALL_HELPER_SCRIPT);
+		const child = spawn(process.execPath, helperArgs, {
 			detached: true,
 			stdio: 'ignore',
 			windowsHide: true,
-			env: { ...process.env, __COMPAT_LAYER: 'RunAsInvoker' }
+			env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }
 		});
-		child.once('error', error => this.logService.error('update#quitAndInstall(): failed to start the installer script', error));
+		child.once('error', error => this.logService.error('update#quitAndInstall(): failed to start the installer helper', error));
 		child.unref();
 
 		this.setState(State.Restarting(update));

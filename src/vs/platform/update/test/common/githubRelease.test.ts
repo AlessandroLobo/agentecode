@@ -7,7 +7,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { buildWindowsInstallScript, IGitHubRelease, isNewerVersion, parseChecksum, parseVersion, pickChecksumUrl, pickDownloadUrl, toUpdate } from '../../common/githubRelease.js';
+import { buildInstallerArgs, IGitHubRelease, INSTALL_HELPER_SCRIPT, isNewerVersion, parseChecksum, parseVersion, pickChecksumUrl, pickDownloadUrl, toUpdate } from '../../common/githubRelease.js';
 
 suite('GitHub release helpers', () => {
 
@@ -67,10 +67,24 @@ suite('GitHub release helpers', () => {
 		);
 	});
 
-	test('buildWindowsInstallScript espera a IDE fechar, protege aspas e reabre a IDE', () => {
+	test('buildInstallerArgs: silencioso, sem reiniciar o Windows, reabre a IDE e grava log', () => {
 		assert.deepStrictEqual(
-			buildWindowsInstallScript(`C:\\Users\\o'brien\\Temp\\Setup.exe`, 4321),
-			`$ErrorActionPreference = 'SilentlyContinue'; Wait-Process -Id 4321 -Timeout 300; Start-Sleep -Seconds 2; Start-Process -FilePath 'C:\\Users\\o''brien\\Temp\\Setup.exe' -ArgumentList '/SILENT', '/NORESTART', '/MERGETASKS=runcode,!desktopicon,!quicklaunchicon'`
+			buildInstallerArgs(`C:\\Temp\\AgenteCode-update\\install.log`),
+			['/SILENT', '/NORESTART', '/MERGETASKS=runcode,!desktopicon,!quicklaunchicon', `/LOG=C:\\Temp\\AgenteCode-update\\install.log`]
+		);
+	});
+
+	test('INSTALL_HELPER_SCRIPT é JavaScript válido, não passa ELECTRON_RUN_AS_NODE ao instalador e reabre a IDE se falhar', () => {
+		// só a sintaxe é verificada aqui; o comportamento foi exercitado com o executável da IDE em modo Node
+		assert.doesNotThrow(() => new Function(INSTALL_HELPER_SCRIPT));
+		assert.deepStrictEqual(
+			[
+				INSTALL_HELPER_SCRIPT.includes('delete cleanEnv.ELECTRON_RUN_AS_NODE'),
+				INSTALL_HELPER_SCRIPT.includes('env: { ...cleanEnv, __COMPAT_LAYER: \'RunAsInvoker\' }'),
+				INSTALL_HELPER_SCRIPT.includes('spawn(ideExe, [], { detached: true, stdio: \'ignore\', env: cleanEnv })'),
+				/powershell|cmd\.exe/i.test(INSTALL_HELPER_SCRIPT),
+			],
+			[true, true, true, false]
 		);
 	});
 

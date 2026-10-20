@@ -103,19 +103,51 @@ export function toUpdate(release: IGitHubRelease, currentVersion: string | undef
 	};
 }
 
-/** Argumentos do instalador (Inno Setup): sem perguntas, sem reiniciar o Windows, e reabre a IDE no fim. */
-export const WINDOWS_INSTALLER_ARGS = ['/SILENT', '/NORESTART', '/MERGETASKS=runcode,!desktopicon,!quicklaunchicon'];
+/**
+ * Argumentos do instalador (Inno Setup): sem perguntas (a janela de progresso continua visível), sem reiniciar
+ * o Windows, reabrindo a IDE no fim e gravando o log da instalação em `logPath`.
+ */
+export function buildInstallerArgs(logPath: string): string[] {
+	return ['/SILENT', '/NORESTART', '/MERGETASKS=runcode,!desktopicon,!quicklaunchicon', `/LOG=${logPath}`];
+}
 
 /**
- * Script PowerShell que espera a IDE (processo `mainPid`) terminar e só então executa o instalador.
- * Assim o instalador nunca encontra a IDE aberta e a nova versão abre sozinha ao fim da instalação.
+ * Programa auxiliar, em JavaScript, executado pelo próprio executável da IDE em modo Node (ELECTRON_RUN_AS_NODE).
+ * Ele espera a IDE terminar e só então executa o instalador, de modo que o instalador nunca encontra a IDE aberta.
+ *
+ * Por que não PowerShell ou cmd: são programas de console, e criados sem janela e desligados da IDE o Windows
+ * falha ao iniciá-los (erro 0xC0000142). O executável da IDE é um programa gráfico e não tem esse problema.
+ *
+ * Argumentos: pid da IDE, arquivo de log do auxiliar, executável da IDE, instalador e argumentos do instalador.
+ * Se o instalador não iniciar, reabre a IDE atual para o usuário não ficar sem ela. O ambiente passado ao
+ * instalador NÃO leva ELECTRON_RUN_AS_NODE, senão a IDE reaberta por ele subiria em modo Node.
  */
-export function buildWindowsInstallScript(installerPath: string, mainPid: number): string {
-	const quote = (value: string) => `'${value.replace(/'/g, `''`)}'`;
-	return [
-		`$ErrorActionPreference = 'SilentlyContinue'`,
-		`Wait-Process -Id ${Math.trunc(mainPid)} -Timeout 300`,
-		'Start-Sleep -Seconds 2',
-		`Start-Process -FilePath ${quote(installerPath)} -ArgumentList ${WINDOWS_INSTALLER_ARGS.map(quote).join(', ')}`,
-	].join('; ');
+export const INSTALL_HELPER_SCRIPT = `
+const { spawn } = require('child_process');
+const fs = require('fs');
+const [mainPid, logFile, ideExe, installer, ...installerArgs] = process.argv.slice(2);
+const log = message => { try { fs.appendFileSync(logFile, new Date().toISOString() + ' ' + message + String.fromCharCode(10)); } catch { } };
+const cleanEnv = { ...process.env };
+delete cleanEnv.ELECTRON_RUN_AS_NODE;
+const alive = pid => { try { process.kill(pid, 0); return true; } catch (error) { return error.code === 'EPERM'; } };
+const deadline = Date.now() + 300000;
+function failed(error) {
+	log('o instalador nao iniciou: ' + error.message + '; reabrindo a IDE atual');
+	try { spawn(ideExe, [], { detached: true, stdio: 'ignore', env: cleanEnv }).unref(); } catch { }
+	setTimeout(() => process.exit(1), 500);
 }
+log('auxiliar iniciou; esperando a IDE (pid ' + mainPid + ') terminar');
+(function waitForIde() {
+	if (alive(Number(mainPid)) && Date.now() < deadline) { setTimeout(waitForIde, 300); return; }
+	log('a IDE terminou; executando o instalador');
+	setTimeout(() => {
+		let child;
+		try {
+			child = spawn(installer, installerArgs, { detached: true, stdio: 'ignore', env: { ...cleanEnv, __COMPAT_LAYER: 'RunAsInvoker' } });
+		} catch (error) { failed(error); return; }
+		child.once('error', failed);
+		child.unref();
+		setTimeout(() => { log('instalador iniciado (pid ' + child.pid + ')'); process.exit(0); }, 1500);
+	}, 1500);
+})();
+`;

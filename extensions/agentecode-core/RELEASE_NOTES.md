@@ -2,6 +2,15 @@
 
 Uma seção por versão, da mais nova para a mais antiga. O título de cada seção precisa ter o formato `## vX.Y.Z - data`.
 
+## v1.0.2 - 20/10/2026
+
+Correção da atualização automática.
+
+- **Quem está na v1.0.0 ou v1.0.1 precisa instalar esta versão manualmente, uma única vez:** baixe o instalador desta Release e execute. Nessas duas versões o botão **Restart to Update** fechava a IDE e não instalava nada. A partir da v1.0.2 a atualização automática funciona.
+- **Restart to Update** agora fecha a IDE, instala e abre a nova versão sozinho. A janela de progresso da instalação fica visível, e o log fica em `%TEMP%\AgenteCode-update\install.log`.
+- Se o instalador não iniciar por algum motivo, a IDE atual é reaberta em vez de você ficar sem ela.
+- A barra de progresso do **Download Update** passa a atualizar de forma contínua. Antes ela parecia travada, embora o download estivesse em andamento.
+
 ## v1.0.1 - 20/10/2026
 
 Correção na conta do GitHub.

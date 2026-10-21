@@ -2,6 +2,15 @@
 
 Uma seção por versão, da mais nova para a mais antiga. O título de cada seção precisa ter o formato `## vX.Y.Z - data`.
 
+## v1.0.3 - 21/10/2026
+
+Barra de uso do Claude com cores que acompanham o consumo.
+
+- **A cor sobe junto com o uso.** Os limites de 5h e 7d e o contexto saem da cor-base e vão aos poucos para o âmbar e o vermelho: base até 50%, âmbar em 75% e vermelho a partir de 90%. Vale na barra de status e no painel. Antes a cor era fixa e trocava de uma vez em 80% ou 90%.
+- O limite de 7d agora usa o mesmo azul do 5h por padrão (antes era amarelo). Para voltar, ajuste `claudeUsageBar.colorWeekly7d`.
+- As faixas e o degradê podem ser ajustados em `claudeUsageBar.colorGradient`, `colorGradientStart`, `colorGradientAmber` e `colorGradientRed`.
+- A extensão **Claude Usage** agora faz parte do AgenteCode, sem baixar nada do Open VSX. As configurações `claudeUsageBar.*` continuam valendo, e se você instalar a extensão avulsa a da IDE se desativa sozinha.
+
 ## v1.0.2 - 20/10/2026
 
 Correção da atualização automática.

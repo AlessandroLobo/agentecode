@@ -89,6 +89,8 @@ export const indentationFilter = Object.freeze<string[]>([
 	'!LICENSES.chromium.html',
 	'!**/LICENSE',
 	'!**/*.mp3',
+	'!extensions/agentecode-core/lib/usage/**', // AgenteCode: copia fiel da extensao claude-usage-statusbar (indentacao de 2 espacos)
+	'!extensions/agentecode-core/test/usage.test.js',
 	'!src/vs/base/browser/dompurify/*',
 	'!src/vs/base/common/lit-html/**',
 	'!src/vs/base/common/signals-core/**',

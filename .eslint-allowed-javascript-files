@@ -178,3 +178,7 @@ extensions/agentecode-core/lib/sessionStore.js
 extensions/agentecode-core/lib/sessionsView.js
 extensions/agentecode-core/lib/releaseNotes.js
 extensions/agentecode-core/lib/releaseNotesView.js
+extensions/agentecode-core/lib/usage/core.js
+extensions/agentecode-core/lib/usage/direct.js
+extensions/agentecode-core/lib/usage/usage.js
+extensions/agentecode-core/test/usage.test.js

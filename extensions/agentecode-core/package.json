@@ -2,7 +2,7 @@
   "name": "agentecode-core",
   "displayName": "AgenteCode Core",
   "description": "Recursos próprios do AgenteCode: histórico de sessões do agente, volta de arquivos (checkpoint), exportação para Markdown e notas de versão.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "agentecode",
   "license": "MIT",
   "icon": "media/icon.png",
@@ -79,6 +79,22 @@
         "command": "agentecode.showReleaseNotes",
         "title": "Mostrar notas da versão",
         "category": "AgenteCode"
+      },
+      {
+        "command": "claudeUsageBar.refresh",
+        "title": "Claude Usage: Atualizar agora"
+      },
+      {
+        "command": "claudeUsageBar.toggle",
+        "title": "Claude Usage: Mostrar/ocultar barra"
+      },
+      {
+        "command": "claudeUsageBar.openPanel",
+        "title": "Claude Usage: Abrir/fechar painel de uso"
+      },
+      {
+        "command": "claudeUsageBar.enableDirect",
+        "title": "Claude Usage: Ativar limites 5h/7d (consulta à API de uso)"
       }
     ],
     "configuration": {
@@ -112,6 +128,111 @@
           "type": "boolean",
           "default": true,
           "description": "Abre as novidades na primeira vez que o AgenteCode inicia depois de uma atualização."
+        },
+        "claudeUsageBar.contextWindow": {
+          "type": "number",
+          "default": 0,
+          "description": "Janela de contexto em tokens. 0 = automático pelo modelo (1M para a família 5, 200k para modelos antigos)."
+        },
+        "claudeUsageBar.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Mostra os itens na barra de status. Desligue se preferir ver o uso só acima do chat (plugin usage-band) ou só no painel lateral."
+        },
+        "claudeUsageBar.refreshSeconds": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "description": "Intervalo de atualização, em segundos."
+        },
+        "claudeUsageBar.showCost": {
+          "type": "boolean",
+          "default": true,
+          "description": "Mostra o custo estimado da sessão (calculado pela tabela de preços da API)."
+        },
+        "claudeUsageBar.showTurn": {
+          "type": "boolean",
+          "default": true,
+          "description": "Mostra a duração do último turno."
+        },
+        "claudeUsageBar.showSessionTime": {
+          "type": "boolean",
+          "default": true,
+          "description": "Mostra o tempo desde o início da sessão."
+        },
+        "claudeUsageBar.showLimits": {
+          "type": "boolean",
+          "default": true,
+          "description": "Mostra os limites de 5h e 7d na barra."
+        },
+        "claudeUsageBar.limitsStaleMinutes": {
+          "type": "number",
+          "default": 30,
+          "minimum": 1,
+          "description": "Idade máxima, em minutos, da leitura dos limites; acima disso eles deixam de ser exibidos. Leituras com mais de 10 min mostram a idade."
+        },
+        "claudeUsageBar.limitsSnapshotPath": {
+          "type": "string",
+          "default": "",
+          "description": "Caminho do usage-snapshot.json da extensão opcional claude-usage-meter. Vazio = ~/.claude-usage-meter/usage-snapshot.json."
+        },
+        "claudeUsageBar.colorSession5h": {
+          "type": "string",
+          "default": "charts.blue",
+          "description": "Cor do limite de 5h na barra e no painel: id de cor do tema (charts.blue, acompanha o tema) ou hexadecimal (#7fbbb3). Vazio = cor padrão da barra."
+        },
+        "claudeUsageBar.colorWeekly7d": {
+          "type": "string",
+          "default": "charts.blue",
+          "description": "Cor-base do limite de 7d na barra e no painel (até o degradê começar): id de cor do tema (charts.blue, acompanha o tema) ou hexadecimal (#7fbbb3). Vazio = cor padrão da barra."
+        },
+        "claudeUsageBar.refreshLimits": {
+          "type": "boolean",
+          "default": true,
+          "description": "Se a extensão opcional claude-usage-meter estiver ativa e a consulta direta desligada, pede a ela uma leitura nova quando a atual tem mais de 6 min."
+        },
+        "claudeUsageBar.fetchLimitsDirectly": {
+          "type": "boolean",
+          "default": false,
+          "description": "Obtém os limites 5h/7d consultando https://api.anthropic.com/api/oauth/usage (endpoint não documentado). Lê o token do Claude Code (~/.claude/.credentials.json; no macOS, o Keychain) somente para essa consulta; várias janelas dividem uma única consulta por intervalo. É ativada pelo aviso na primeira execução ou pelo comando \"Claude Usage: Ativar limites 5h/7d\"."
+        },
+        "claudeUsageBar.directRefreshMinutes": {
+          "type": "number",
+          "default": 5,
+          "minimum": 3,
+          "description": "Intervalo, em minutos, da consulta dos limites quando o Claude está parado (com recuo automático em caso de limitação da API)."
+        },
+        "claudeUsageBar.activeRefreshSeconds": {
+          "type": "number",
+          "default": 60,
+          "minimum": 30,
+          "description": "Enquanto o Claude está sendo usado, consulta os limites com este espaçamento mínimo, em segundos (no máximo uma consulta por computador nesse intervalo)."
+        },
+        "claudeUsageBar.colorGradient": {
+          "type": "boolean",
+          "default": true,
+          "description": "Muda a cor dos limites 5h e 7d e do contexto aos poucos, da cor-base até o vermelho, conforme o uso sobe (veja colorGradientStart, colorGradientAmber e colorGradientRed). Desligado, a cor é fixa e só troca no alerta."
+        },
+        "claudeUsageBar.colorGradientStart": {
+          "type": "number",
+          "default": 50,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Uso (%) a partir do qual a cor começa a sair da cor-base em direção ao âmbar. O contexto, que não tem cor-base, só começa a colorir no âmbar."
+        },
+        "claudeUsageBar.colorGradientAmber": {
+          "type": "number",
+          "default": 75,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Uso (%) em que a cor chega ao âmbar, a meio caminho do vermelho."
+        },
+        "claudeUsageBar.colorGradientRed": {
+          "type": "number",
+          "default": 90,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Uso (%) a partir do qual a cor é vermelha e o alerta de fundo da barra é ligado. Precisa ser maior que o âmbar, que precisa ser maior que o início; fora de ordem valem 50, 75 e 90."
         }
       }
     },
@@ -122,6 +243,14 @@
           "title": "Sessões do agente",
           "icon": "media/sessions.svg"
         }
+      ],
+      "activitybar": [
+        {
+          "id": "claudeUsage",
+          "title": "Claude Usage",
+          "icon": "media/usage.svg",
+          "when": "agentecode.usage.enabled"
+        }
       ]
     },
     "views": {
@@ -130,6 +259,14 @@
           "id": "agentecode.sessions",
           "name": "Histórico de sessões",
           "icon": "media/sessions.svg"
+        }
+      ],
+      "claudeUsage": [
+        {
+          "type": "webview",
+          "id": "claudeUsageBar.panel",
+          "name": "Uso do Claude",
+          "when": "agentecode.usage.enabled"
         }
       ]
     },
@@ -156,6 +293,22 @@
         {
           "command": "agentecode.sessions.clearSearch",
           "when": "agentecode.sessions.searching"
+        },
+        {
+          "command": "claudeUsageBar.refresh",
+          "when": "agentecode.usage.enabled"
+        },
+        {
+          "command": "claudeUsageBar.toggle",
+          "when": "agentecode.usage.enabled"
+        },
+        {
+          "command": "claudeUsageBar.openPanel",
+          "when": "agentecode.usage.enabled"
+        },
+        {
+          "command": "claudeUsageBar.enableDirect",
+          "when": "agentecode.usage.enabled"
         }
       ],
       "view/title": [

@@ -61,3 +61,6 @@
 # Vendored third-party libraries
 src/vs/base/common/lit-html/**
 src/vs/base/common/signals-core/**
+# AgenteCode: copia fiel da extensao claude-usage-statusbar (a fonte e o repositorio dela)
+**/extensions/agentecode-core/lib/usage/**
+**/extensions/agentecode-core/test/usage.test.js

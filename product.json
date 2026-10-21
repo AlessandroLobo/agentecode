@@ -1,6 +1,6 @@
 {
 	"nameShort": "AgenteCode",
-	"nameLong": "Agente Code IDE v1.0.2",
+	"nameLong": "Agente Code IDE v1.0.3",
 	"applicationName": "agentecode",
 	"dataFolderName": ".agentecode",
 	"sharedDataFolderName": ".agentecode-shared",
@@ -173,21 +173,6 @@
 			}
 		},
 		{
-			"name": "alessandrolobo.claude-usage-statusbar-metric",
-			"version": "0.9.2",
-			"repo": "https://github.com/AlessandroLobo/claude-usage-statusbar",
-			"metadata": {
-				"id": "alessandrolobo.claude-usage-statusbar-metric",
-				"publisherId": {
-					"publisherId": "alessandrolobo",
-					"publisherName": "alessandrolobo",
-					"displayName": "Alessandro Lobo",
-					"flags": "verified"
-				},
-				"publisherDisplayName": "Alessandro Lobo"
-			}
-		},
-		{
 			"name": "HellFiveOsborn.markhub",
 			"version": "0.0.13",
 			"repo": "https://github.com/HellFiveOsborn/markhub",
@@ -314,7 +299,6 @@
 		"ms-dotnettools.vscode-dotnet-runtime",
 		"anthropic.claude-code",
 		"ms-ceintl.vscode-language-pack-pt-br",
-		"alessandrolobo.claude-usage-statusbar-metric",
 		"HellFiveOsborn.markhub",
 		"ms-mssql.mssql"
 	],

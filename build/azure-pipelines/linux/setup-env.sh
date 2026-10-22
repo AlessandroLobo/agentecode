@@ -39,7 +39,20 @@ EOF
 
 if [ "$npm_config_arch" == "x64" ]; then
   # Download clang based on chromium revision used by vscode
-  curl -s https://raw.githubusercontent.com/chromium/chromium/150.0.7871.250/tools/clang/scripts/update.py | python - --output-dir=$PWD/.build/CR_Clang --host-os=linux
+  # AgenteCode: raw.githubusercontent.com answers 429 to GitHub runners and `curl -s | python` fed that text to Python.
+  # Fetch the script with retries (authenticated API first, raw second) and fail loudly if it cannot be downloaded.
+  mkdir -p "$PWD/.build"
+  CLANG_UPDATE_PY="$PWD/.build/clang-update.py"
+  for attempt in 1 2 3 4 5 6; do
+    if curl -fsSL -H "Authorization: Bearer ${GITHUB_TOKEN:-}" -H "Accept: application/vnd.github.raw+json" "https://api.github.com/repos/chromium/chromium/contents/tools/clang/scripts/update.py?ref=150.0.7871.250" -o "$CLANG_UPDATE_PY" ||
+       curl -fsSL "https://raw.githubusercontent.com/chromium/chromium/150.0.7871.250/tools/clang/scripts/update.py" -o "$CLANG_UPDATE_PY"; then
+      break
+    fi
+    if [ "$attempt" -eq 6 ]; then echo "Falha ao baixar tools/clang/scripts/update.py do Chromium" >&2; exit 1; fi
+    echo "Download do update.py do clang falhou ($attempt), tentando de novo..."
+    sleep $((attempt * 20))
+  done
+  python - --output-dir=$PWD/.build/CR_Clang --host-os=linux < "$CLANG_UPDATE_PY"
 
   # Download libcxx headers and objects from upstream electron releases
   DEBUG=libcxx-fetcher \

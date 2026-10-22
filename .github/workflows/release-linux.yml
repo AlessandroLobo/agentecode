@@ -63,6 +63,16 @@ jobs:
           mkdir -p logs
           {
             set -e
+            # Como no pipeline do VS Code: as dependências da pasta build/ vêm antes do setup-env.sh,
+            # cujo libcxx-fetcher.ts usa pacotes dela (ex.: debug).
+            (
+              cd build
+              for i in 1 2 3 4 5; do
+                npm ci && break
+                if [ "$i" -eq 5 ]; then echo "npm ci em build/ falhou 5 vezes" >&2; exit 1; fi
+                echo "npm ci em build/ falhou ($i), tentando de novo..."
+              done
+            )
             source ./build/azure-pipelines/linux/setup-env.sh
             node build/npm/preinstall.ts
             for i in 1 2 3 4 5; do

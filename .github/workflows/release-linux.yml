@@ -44,36 +44,61 @@ jobs:
         with:
           node-version-file: .nvmrc
 
+      # O setup-env.sh do VS Code chama `python` (o Ubuntu 22.04 do GitHub só garante `python3`).
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Dependências do sistema
         run: |
           sudo apt-get update
           sudo apt-get install -y pkg-config libxkbfile-dev libkrb5-dev libx11-dev libsecret-1-dev libgbm1 fakeroot dpkg-dev
 
+      # As etapas longas gravam o log em logs/*.log; se algo falhar, o final de cada log vira uma anotação
+      # pública (a última etapa), porque o texto do log só aparece para quem está logado no GitHub.
       - name: Dependências do projeto (toolchain do VS Code para Linux)
+        shell: bash
         run: |
-          set -e
-          source ./build/azure-pipelines/linux/setup-env.sh
-          node build/npm/preinstall.ts
-          for i in 1 2 3 4 5; do
-            npm ci && break
-            if [ "$i" -eq 5 ]; then echo "npm ci falhou 5 vezes" >&2; exit 1; fi
-            echo "npm ci falhou ($i), tentando de novo..."
-          done
+          mkdir -p logs
+          {
+            set -e
+            source ./build/azure-pipelines/linux/setup-env.sh
+            node build/npm/preinstall.ts
+            for i in 1 2 3 4 5; do
+              npm ci && break
+              if [ "$i" -eq 5 ]; then echo "npm ci falhou 5 vezes" >&2; exit 1; fi
+              echo "npm ci falhou ($i), tentando de novo..."
+            done
+          } 2>&1 | tee logs/1-dependencias.log
 
       - name: Baixar extensões embutidas
-        run: node build/lib/builtInExtensions.ts
+        shell: bash
+        run: |
+          mkdir -p logs
+          node build/lib/builtInExtensions.ts 2>&1 | tee logs/2-extensoes.log
 
       - name: Compilar
-        run: npm run gulp core-ci
+        shell: bash
+        run: |
+          mkdir -p logs
+          npm run gulp core-ci 2>&1 | tee logs/3-compilar.log
 
       - name: Empacotar o cliente
-        run: npm run gulp vscode-linux-x64-min-ci
+        shell: bash
+        run: |
+          mkdir -p logs
+          npm run gulp vscode-linux-x64-min-ci 2>&1 | tee logs/4-empacotar.log
 
       - name: Gerar o pacote .deb
+        shell: bash
         run: |
-          set -e
-          npm run gulp vscode-linux-x64-prepare-deb
-          npm run gulp vscode-linux-x64-build-deb
+          mkdir -p logs
+          {
+            set -e
+            npm run gulp vscode-linux-x64-prepare-deb
+            npm run gulp vscode-linux-x64-build-deb
+          } 2>&1 | tee logs/5-deb.log
 
       - name: Nomear o arquivo e calcular o SHA-256
         id: pack
@@ -102,3 +127,13 @@ jobs:
           tag_name: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}
           files: dist/*
           prerelease: ${{ contains(github.ref_type == 'tag' && github.ref_name || inputs.tag, '-') }}
+
+      # Falhou: publica o final do log da etapa que caiu (a última com log) como anotação, visível sem login.
+      - name: Resumo do erro (anotação)
+        if: failure()
+        shell: bash
+        run: |
+          last=$(ls -1 logs/*.log 2>/dev/null | tail -n1)
+          [ -n "$last" ] || exit 0
+          body=$(tail -n 40 "$last" | sed 's/%/%25/g; s/\r//g' | awk '{printf "%s%%0A", $0}')
+          echo "::error title=Final de $(basename "$last")::${body:0:3800}"

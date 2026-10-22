@@ -43,17 +43,30 @@ const EXCLUDED_SETTINGS_DEFAULT = [
 	'python.defaultInterpreterPath'
 ];
 
-/** Padroes regex para exclusao automatica de chaves sensiveis. */
+/** Padrões regex para exclusão automática de chaves sensíveis por nome. */
 const EXCLUDED_SETTING_PATTERNS = [
-	/token|secret|password|api[_-]?key/i
+	/(?:senha|segredo|credencia[il]|credential|passw(?:or)?d|passwd|pwd|private[_-]?key|authorization|bearer|api[_-]?key|access[_-]?key|token|secret)/i
 ];
 
-/** Prefixos de configuracao que nunca devem ser sincronizados. */
+/** Padrões regex para escaneamento de valores sensíveis (defesa em profundidade). */
+const VALUE_SECRET_PATTERNS = [
+	/\bgh[pos]_[A-Za-z0-9_]{8,}/,
+	/github_pat_[A-Za-z0-9_]{20,}/,
+	/sk-ant-/,
+	/sk-[A-Za-z0-9]{20,}/,
+	/AKIA[0-9A-Z]{16}/,
+	/xox[baprs]-/,
+	/-----BEGIN [A-Z ]*PRIVATE KEY-----/,
+	/eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+/,
+	/:\/\/[^/\s:@]+:[^/\s:@]+@/
+];
+
+/** Prefixos de configuração que nunca devem ser sincronizados. */
 const EXCLUDED_SETTING_PREFIXES = [
 	'agentecode.sync.'
 ];
 
-/** Caminhos e configuracoes de maquina conhecidas. */
+/** Caminhos e configurações de máquina conhecidas. */
 const KNOWN_MACHINE_PATHS = [
 	'git.path',
 	'python.defaultInterpreterPath',
@@ -65,14 +78,14 @@ const KNOWN_MACHINE_PATHS = [
 	'terminal.integrated.shellArgs.osx'
 ];
 
-/** Conteudo do LEIA-ME.md colocado dentro do Gist. */
+/** Conteúdo do LEIA-ME.md colocado dentro do Gist. */
 const README_CONTENT = `# AgenteCode Settings Sync
 
-Este Gist armazena as configuracoes sincronizadas do AgenteCode.
+Este Gist armazena as configurações sincronizadas do AgenteCode.
 
-> **Aviso de Privacidade:** Este Gist e **secreto**, o que significa que ele nao aparece em buscas publicas, mas qualquer pessoa que possua este link podera ler seu conteudo. O AgenteCode exclui automaticamente chaves de API, segredos e caminhos locais antes de sincronizar.
+> **Aviso de Privacidade:** Este Gist é **secreto**, o que significa que ele não aparece em buscas públicas, mas qualquer pessoa que possua este link poderá ler seu conteúdo. O AgenteCode exclui automaticamente chaves de API, segredos e caminhos locais antes de sincronizar.
 
-**Por favor, nao edite estes arquivos manualmente.** O AgenteCode atualiza este Gist automaticamente.
+**Por favor, não edite estes arquivos manualmente.** O AgenteCode atualiza este Gist automaticamente.
 `;
 
 function getClientId() {
@@ -103,6 +116,7 @@ module.exports = {
 	MAX_BACKUPS_TO_KEEP,
 	EXCLUDED_SETTINGS_DEFAULT,
 	EXCLUDED_SETTING_PATTERNS,
+	VALUE_SECRET_PATTERNS,
 	EXCLUDED_SETTING_PREFIXES,
 	KNOWN_MACHINE_PATHS,
 	README_CONTENT,

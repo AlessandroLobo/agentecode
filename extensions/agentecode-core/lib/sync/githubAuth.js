@@ -16,24 +16,47 @@ class AuthError extends Error {
 }
 
 class TokenExpiredError extends AuthError {
-	constructor(message = 'O codigo de autorizacao expirou. Por favor, tente novamente.') {
+	constructor(message = 'O código de autorização expirou. Por favor, tente novamente.') {
 		super(message, 'EXPIRED_TOKEN');
 		this.name = 'TokenExpiredError';
 	}
 }
 
 class AccessDeniedError extends AuthError {
-	constructor(message = 'A autorizacao foi cancelada no navegador.') {
+	constructor(message = 'A autorização foi cancelada no navegador.') {
 		super(message, 'ACCESS_DENIED');
 		this.name = 'AccessDeniedError';
 	}
 }
 
 class NetworkError extends AuthError {
-	constructor(message = 'Nao foi possivel conectar ao GitHub. Verifique sua conexao.') {
+	constructor(message = 'Não foi possível conectar ao GitHub. Verifique sua conexão.') {
 		super(message, 'NETWORK_ERROR');
 		this.name = 'NetworkError';
 	}
+}
+
+/**
+ * Combina timeout com signal de cancelamento externo (E5.2).
+ * @param {number} timeoutMs
+ * @param {AbortSignal} [externalSignal]
+ * @returns {AbortSignal}
+ */
+function combineSignals(timeoutMs = 30000, externalSignal = null) {
+	const timeoutSignal = AbortSignal.timeout(timeoutMs);
+	if (!externalSignal) {
+		return timeoutSignal;
+	}
+	if (typeof AbortSignal.any === 'function') {
+		return AbortSignal.any([timeoutSignal, externalSignal]);
+	}
+	const controller = new AbortController();
+	const onAbort = function () {
+		controller.abort(this.reason);
+	};
+	timeoutSignal.addEventListener('abort', onAbort, { once: true });
+	externalSignal.addEventListener('abort', onAbort, { once: true });
+	return controller.signal;
 }
 
 /**
@@ -43,6 +66,7 @@ class NetworkError extends AuthError {
  * @param {string} [options.scope] Padrao: 'gist'
  * @param {string} [options.baseUrl]
  * @param {typeof fetch} [options.fetchFn]
+ * @param {AbortSignal} [options.signal]
  * @returns {Promise<{ device_code: string, user_code: string, verification_uri: string, expires_in: number, interval: number }>}
  */
 async function startDeviceFlow(options = {}) {
@@ -64,15 +88,16 @@ async function startDeviceFlow(options = {}) {
 			body: JSON.stringify({
 				client_id: clientId,
 				scope
-			})
+			}),
+			signal: combineSignals(30000, options.signal)
 		});
 	} catch (err) {
-		throw new NetworkError(`Falha na conexao com o GitHub: ${err.message}`);
+		throw new NetworkError(`Falha na conexão com o GitHub: ${err.message}`);
 	}
 
 	if (!response.ok) {
 		const text = await response.text().catch(() => '');
-		throw new AuthError(`GitHub retornou erro HTTP ${response.status} ao solicitar codigo: ${text}`, 'HTTP_ERROR');
+		throw new AuthError(`GitHub retornou erro HTTP ${response.status} ao solicitar código: ${text}`, 'HTTP_ERROR');
 	}
 
 	const data = await response.json();
@@ -116,8 +141,11 @@ async function pollForToken(options) {
 	const url = `${baseUrl}/login/oauth/access_token`;
 
 	while (Date.now() < expiresAt) {
+		// Espera interval antes de consultar (inclusive antes da primeira consulta - E5.3)
+		await sleep(interval * 1000);
+
 		if (options.signal?.aborted) {
-			const err = new Error('Operacao cancelada.');
+			const err = new Error('Operação cancelada.');
 			err.name = 'AbortError';
 			throw err;
 		}
@@ -136,13 +164,25 @@ async function pollForToken(options) {
 					device_code: deviceCode,
 					grant_type: 'urn:ietf:params:oauth:grant-type:device_code'
 				}),
-				signal: options.signal
+				signal: combineSignals(30000, options.signal)
 			});
 		} catch (err) {
 			if (err.name === 'AbortError') {
 				throw err;
 			}
-			throw new NetworkError(`Falha na conexao ao consultar token: ${err.message}`);
+			// Tolera falhas transitórias de rede se ainda dentro do prazo (E5.3)
+			if (Date.now() < expiresAt) {
+				continue;
+			}
+			throw new NetworkError(`Falha na conexão ao consultar token: ${err.message}`);
+		}
+
+		// Tolera respostas 5xx transitórias do GitHub (E5.3)
+		if (response.status >= 500) {
+			if (Date.now() < expiresAt) {
+				continue;
+			}
+			throw new NetworkError(`GitHub retornou HTTP ${response.status}`);
 		}
 
 		const data = await response.json().catch(() => ({}));
@@ -150,7 +190,7 @@ async function pollForToken(options) {
 		if (data.access_token) {
 			const scope = data.scope || '';
 			if (!scope.includes('gist')) {
-				throw new AuthError('O token retornado nao contem a permissao necessaria (gist).', 'INSUFFICIENT_SCOPE');
+				throw new AuthError('O token retornado não contém a permissão necessária (gist).', 'INSUFFICIENT_SCOPE');
 			}
 			return {
 				accessToken: data.access_token,
@@ -160,7 +200,6 @@ async function pollForToken(options) {
 		}
 
 		if (data.error === 'authorization_pending') {
-			await sleep(interval * 1000);
 			continue;
 		}
 
@@ -169,7 +208,6 @@ async function pollForToken(options) {
 			if (typeof options.onSlowDown === 'function') {
 				options.onSlowDown(interval);
 			}
-			await sleep(interval * 1000);
 			continue;
 		}
 
@@ -181,7 +219,7 @@ async function pollForToken(options) {
 			throw new AccessDeniedError();
 		}
 
-		throw new AuthError(data.error_description || data.error || 'Erro desconhecido na autorizacao.', data.error);
+		throw new AuthError(data.error_description || data.error || 'Erro desconhecido na autorização.', data.error);
 	}
 
 	throw new TokenExpiredError('O tempo para autorizar no navegador expirou.');
@@ -208,18 +246,19 @@ async function getUser(token, options = {}) {
 				'Accept': 'application/vnd.github+json',
 				'X-GitHub-Api-Version': '2022-11-28',
 				'User-Agent': 'AgenteCode-Sync'
-			}
+			},
+			signal: combineSignals(30000, options.signal)
 		});
 	} catch (err) {
-		throw new NetworkError(`Falha ao obter perfil do usuario: ${err.message}`);
+		throw new NetworkError(`Falha ao obter perfil do usuário: ${err.message}`);
 	}
 
 	if (response.status === 401) {
-		throw new AuthError('Token revogado ou invalido (401).', 'UNAUTHORIZED');
+		throw new AuthError('Token revogado ou inválido (401).', 'UNAUTHORIZED');
 	}
 
 	if (!response.ok) {
-		throw new AuthError(`Erro ao consultar usuario: HTTP ${response.status}`, 'HTTP_ERROR');
+		throw new AuthError(`Erro ao consultar usuário: HTTP ${response.status}`, 'HTTP_ERROR');
 	}
 
 	return response.json();

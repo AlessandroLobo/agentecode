@@ -133,13 +133,13 @@ describe('Sincronizacao de Configuracoes - Nucleo Puro', () => {
 		});
 
 		test('saneia nomes de snippets e permite restauracao', () => {
-			const { gistFileName, originalName, sanitized } = snapshot.sanitizeSnippetName('meu snippet! #1.json');
-			assert.equal(gistFileName, `${config.SNIPPET_PREFIX}meu_snippet___1.json`);
-			assert.equal(originalName, 'meu snippet! #1.json');
-			assert.equal(sanitized, true);
+			const { gistFileName, originalName, sanitized } = snapshot.sanitizeSnippetName('csharp.json');
+			assert.equal(gistFileName, `${config.SNIPPET_PREFIX}csharp.json`);
+			assert.equal(originalName, 'csharp.json');
+			assert.equal(sanitized, false);
 
-			const restored = snapshot.restoreSnippetName(gistFileName, { [gistFileName]: originalName });
-			assert.equal(restored, 'meu snippet! #1.json');
+			const restored = snapshot.restoreSnippetName(gistFileName);
+			assert.equal(restored, 'csharp.json');
 		});
 
 		test('normalizeExtensions filtra duplicatas, coloca em minusculas e ordena', () => {
@@ -663,6 +663,314 @@ describe('Sincronizacao de Configuracoes - Nucleo Puro', () => {
 			assert.equal(contentSettingsB, snapA.files['settings.json']);
 			assert.equal(contentKeybindingsB, snapA.files['keybindings.json']);
 			assert.equal(contentSnippetB, snapA.files['snippets--csharp.json']);
+		});
+	});
+
+	describe('8. Correcoes da Revisao da Fase 1 (Apendice E1 a E5)', () => {
+		let fake;
+
+		before(async () => {
+			fake = createFakeGitHub();
+			await fake.start();
+		});
+
+		after(async () => {
+			if (fake) {
+				await fake.stop();
+			}
+		});
+
+		beforeEach(() => {
+			if (fake) {
+				fake.reset();
+			}
+		});
+
+		test('E1: remove senhas em PT, credenciais em URL e chaves em valores retornando lista de omitidos', () => {
+			const settings = `{
+	// Fonte normal
+	"editor.fontSize": 14,
+	// Senha em portugues
+	"segredo": "12345",
+	"auth": {
+		"senha": "minha-senha-secreta",
+		"usuario": "alessandro"
+	},
+	// URL com usuario e senha
+	"http.proxy": "http://usuario:senha@proxy:8080",
+	// Token em valor de texto
+	"anthropic.key": "sk-ant-api03-abcdef1234567890",
+	"github.token": "ghp_1234567890abcdef1234567890",
+	"workbench.colorTheme": "AgenteCode Deep Teal Clean"
+}`;
+
+			const { text: filtered, omitted } = exclusions.filterSettings(settings);
+
+			// Deve manter itens legitimos e comentarios
+			assert.ok(filtered.includes('editor.fontSize'));
+			assert.ok(filtered.includes('Fonte normal'));
+			assert.ok(filtered.includes('usuario'));
+			assert.ok(filtered.includes('alessandro'));
+			assert.ok(filtered.includes('workbench.colorTheme'));
+
+			// Nao deve conter segredos
+			assert.ok(!filtered.includes('segredo'));
+			assert.ok(!filtered.includes('12345'));
+			assert.ok(!filtered.includes('senha'));
+			assert.ok(!filtered.includes('minha-senha-secreta'));
+			assert.ok(!filtered.includes('http://usuario:senha@proxy:8080'));
+			assert.ok(!filtered.includes('sk-ant-'));
+			assert.ok(!filtered.includes('ghp_'));
+
+			// Confere a lista de chaves omitidas
+			assert.ok(omitted.includes('segredo'));
+			assert.ok(omitted.includes('auth.senha'));
+			assert.ok(omitted.includes('http.proxy'));
+			assert.ok(omitted.includes('anthropic.key'));
+			assert.ok(omitted.includes('github.token'));
+
+			// Deve ser um JSONC valido
+			const parsed = jsonc.parseJsonc(filtered);
+			assert.equal(parsed['editor.fontSize'], 14);
+			assert.equal(parsed.auth.usuario, 'alessandro');
+			assert.equal(parsed.auth.senha, undefined);
+			assert.equal(parsed['http.proxy'], undefined);
+			assert.equal(parsed['anthropic.key'], undefined);
+		});
+
+		test('E1: filterKeybindings e filterSnippets removem itens com credenciais', () => {
+			const keybindings = `[
+	{
+		"key": "ctrl+k ctrl+s",
+		"command": "workbench.action.openGlobalKeybindings"
+	},
+	{
+		"key": "ctrl+shift+x",
+		"command": "custom.secretCommand",
+		"args": {
+			"token": "ghp_secrettoken1234567890"
+		}
+	}
+]`;
+			const resKeybindings = exclusions.filterKeybindings(keybindings);
+			assert.ok(!resKeybindings.text.includes('ghp_secrettoken1234567890'));
+			assert.ok(resKeybindings.text.includes('workbench.action.openGlobalKeybindings'));
+			assert.ok(resKeybindings.omitted.length > 0);
+
+			const snippets = `{
+	"Snippet Seguro": {
+		"prefix": "seguro",
+		"body": ["console.log('ola');"],
+		"description": "Log simples"
+	},
+	"Snippet Inseguro": {
+		"prefix": "inseguro",
+		"body": ["const apiKey = 'sk-ant-api03-abcdef1234567890';"],
+		"description": "Vazamento de chave"
+	}
+}`;
+			const resSnippets = exclusions.filterSnippets(snippets);
+			assert.ok(!resSnippets.text.includes('sk-ant-api03-abcdef1234567890'));
+			assert.ok(!resSnippets.text.includes('Snippet Inseguro'));
+			assert.ok(resSnippets.text.includes('Snippet Seguro'));
+			assert.ok(resSnippets.omitted.includes('Snippet Inseguro'));
+		});
+
+		test('E2: dono do Gist vs terceiro exige confirmacao e desativa envio automatico', () => {
+			const gistSameOwner = { owner: { login: 'alessandrolobo' } };
+			const gistOtherOwner = { owner: { login: 'hacker123' } };
+
+			assert.equal(gistClient.isGistOwner(gistSameOwner, 'alessandrolobo'), true);
+			assert.equal(gistClient.isGistOwner(gistOtherOwner, 'alessandrolobo'), false);
+
+			const localSnap = { files: { 'settings.json': '{}' }, fileHashes: {}, extensions: [] };
+			const remoteFiles = { 'settings.json': '{"theme":"dark"}' };
+
+			// Plano para Gist de terceiro sem confirmacao
+			const planThirdParty = plan.createSyncPlan({
+				localSnapshot: localSnap,
+				remoteFiles,
+				gist: gistOtherOwner,
+				currentLogin: 'alessandrolobo',
+				isConfirmedThirdParty: false
+			});
+
+			assert.equal(planThirdParty.isThirdParty, true);
+			assert.equal(planThirdParty.canAutoSync, false);
+			assert.equal(planThirdParty.requiresThirdPartyConfirmation, true);
+			assert.ok(planThirdParty.warning.includes('não é seu'));
+
+			// Plano para Gist de terceiro com confirmacao explicita
+			const planConfirmed = plan.createSyncPlan({
+				localSnapshot: localSnap,
+				remoteFiles,
+				gist: gistOtherOwner,
+				currentLogin: 'alessandrolobo',
+				isConfirmedThirdParty: true
+			});
+
+			assert.equal(planConfirmed.isThirdParty, true);
+			assert.equal(planConfirmed.canAutoSync, false);
+			assert.equal(planConfirmed.requiresThirdPartyConfirmation, false);
+		});
+
+		test('E2: path traversal em snippets e rejeitado no restore e resolvePath', () => {
+			// Testes exigidos no Apendice E2: manifesto com ..\\..\\evil.js, nome com /, com \\, vazio, so pontos
+			assert.equal(snapshot.restoreSnippetName('snippets--evil.json', { 'snippets--evil.json': '../../evil.js' }), null);
+			assert.equal(snapshot.restoreSnippetName('snippets--evil.json', { 'snippets--evil.json': 'sub/snippet.json' }), null);
+			assert.equal(snapshot.restoreSnippetName('snippets--evil.json', { 'snippets--evil.json': 'sub\\snippet.json' }), null);
+			assert.equal(snapshot.restoreSnippetName('snippets--evil.json', { 'snippets--evil.json': '' }), null);
+			assert.equal(snapshot.restoreSnippetName('snippets--evil.json', { 'snippets--evil.json': '.' }), null);
+			assert.equal(snapshot.restoreSnippetName('snippets--evil.json', { 'snippets--evil.json': '..' }), null);
+			assert.equal(snapshot.restoreSnippetName('snippets--evil.json', { 'snippets--evil.json': '...' }), null);
+			assert.equal(snapshot.restoreSnippetName('snippets--evil.json', { 'snippets--evil.json': 'arquivo.exe' }), null);
+
+			// Nome valido
+			assert.equal(snapshot.restoreSnippetName('snippets--python.json', { 'snippets--python.json': 'python.json' }), 'python.json');
+			assert.equal(snapshot.restoreSnippetName('snippets--csharp.code-snippets'), 'csharp.code-snippets');
+
+			// resolveSnippetPath garante que caminho fica dentro da pasta snippets/
+			const snippetsDir = path.join(os.tmpdir(), 'ac-test-snippets');
+			assert.equal(snapshot.resolveSnippetPath(snippetsDir, '../../evil.js'), null);
+			assert.equal(snapshot.resolveSnippetPath(snippetsDir, 'csharp.json'), path.resolve(snippetsDir, 'csharp.json'));
+		});
+
+		test('E3: arquivo truncado com falha de raw_url lanca GistError TRUNCATED e nao envia token', async () => {
+			fake.setFailRawUrl(true);
+
+			const created = fake.addGist({
+				description: `Gist truncado ${config.GIST_MARKER}`,
+				public: false,
+				files: {
+					'settings.json': {
+						content: '{"cortado": true',
+						truncated: true
+					}
+				}
+			});
+
+			await assert.rejects(
+				() => gistClient.getGist('gho_valid_token_123', created.id, {
+					apiBaseUrl: fake.getApiBaseUrl()
+				}),
+				err => {
+					assert.ok(err instanceof gistClient.GistError);
+					assert.equal(err.code, 'TRUNCATED');
+					return true;
+				}
+			);
+
+			// Verifica se a requisicao ao raw_url foi feita SEM enviar o token no header
+			const rawHeaders = fake.getLastRawHeaders();
+			assert.ok(rawHeaders);
+			assert.equal(rawHeaders.authorization, undefined);
+		});
+
+		test('E4: 403 Forbidden lanca GistForbiddenError e 403 RateLimit lanca RateLimitError', async () => {
+			fake.setScenario('forbidden');
+
+			await assert.rejects(
+				() => gistClient.findSyncGist('gho_test_token', {
+					apiBaseUrl: fake.getApiBaseUrl()
+				}),
+				err => {
+					assert.ok(err instanceof gistClient.GistForbiddenError);
+					assert.equal(err.code, 'FORBIDDEN');
+					assert.equal(err.status, 403);
+					return true;
+				}
+			);
+
+			fake.setScenario('forbidden_rate_limit');
+
+			await assert.rejects(
+				() => gistClient.findSyncGist('gho_test_token', {
+					apiBaseUrl: fake.getApiBaseUrl()
+				}),
+				err => {
+					assert.ok(err instanceof gistClient.RateLimitError);
+					assert.equal(err.code, 'RATE_LIMIT_EXCEEDED');
+					return true;
+				}
+			);
+		});
+
+		test('E5: base ausente ou invalida tratada como downloadFirst e hash ignora manifesto e leia-me', () => {
+			const localSnap = {
+				files: { 'settings.json': '{"a":1}' },
+				fileHashes: { 'settings.json': 'h1' },
+				compositeHash: 'comp_local',
+				extensions: []
+			};
+			const remoteFiles1 = {
+				'settings.json': '{"a":1}',
+				'agentecode-sync.json': '{"schema":1}',
+				'LEIA-ME.md': '# Sync v1'
+			};
+			const remoteFiles2 = {
+				'settings.json': '{"a":1}',
+				'agentecode-sync.json': '{"schema":2, "outro": true}',
+				'LEIA-ME.md': '# Sync v2 diferente'
+			};
+
+			// Base invalida (objeto vazio sem localHash nem files)
+			const planInvalidBase = plan.createSyncPlan({
+				localSnapshot: localSnap,
+				remoteFiles: remoteFiles1,
+				base: {}
+			});
+			assert.equal(planInvalidBase.action, 'downloadFirst');
+
+			// Base valida: como apenas agentecode-sync.json e LEIA-ME.md mudaram entre remoteFiles1 e remoteFiles2,
+			// o hash de fallback do remoto nao deve mudar (nada a fazer)
+			const singleFileHash = snapshot.sha256('settings.json:' + snapshot.sha256('{"a":1}') + '\n');
+			const plan1 = plan.createSyncPlan({
+				localSnapshot: localSnap,
+				remoteFiles: remoteFiles1,
+				base: { localHash: 'comp_local', manifestHash: singleFileHash }
+			});
+			assert.equal(plan1.action, 'nothing');
+
+			const plan2 = plan.createSyncPlan({
+				localSnapshot: localSnap,
+				remoteFiles: remoteFiles2,
+				base: { localHash: 'comp_local', manifestHash: singleFileHash }
+			});
+			assert.equal(plan2.action, 'nothing');
+		});
+
+		test('E5: pollForToken tolera erro 500 transitorio e espera antes da consulta', async () => {
+			fake.setScenario('transient_500_then_success');
+
+			let sleepCalls = 0;
+			const res = await githubAuth.pollForToken({
+				clientId: 'test_client',
+				deviceCode: 'code_500',
+				interval: 1,
+				expiresIn: 10,
+				baseUrl: fake.getBaseUrl(),
+				sleepFn: async () => { sleepCalls++; }
+			});
+
+			assert.ok(res.accessToken);
+			// Esperou interval antes da tentativa 1 e antes da tentativa 2
+			assert.ok(sleepCalls >= 2);
+		});
+
+		test('E5: normalizacao estetica de jsonc e acentos no README_CONTENT', () => {
+			const text = `{
+	// comentario
+	"removido": 123
+}`;
+			const stripped = jsonc.stripTopLevelProperties(text, ['removido']);
+			// Nao deve conter chaves com espacos desnecessarios nem virgulas invalidas
+			assert.ok(!stripped.includes('removido'));
+
+			// README_CONTENT tem acentuacao em pt-BR
+			assert.ok(config.README_CONTENT.includes('configurações'));
+			assert.ok(config.README_CONTENT.includes('é **secreto**'));
+			assert.ok(config.README_CONTENT.includes('não aparece'));
+			assert.ok(config.README_CONTENT.includes('poderá'));
 		});
 	});
 

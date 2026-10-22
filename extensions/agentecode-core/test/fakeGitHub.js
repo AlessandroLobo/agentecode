@@ -24,6 +24,8 @@ function createFakeGitHub() {
 	let scenario = 'default';
 	let pollAttempt = 0;
 	let customScenarioHandler = null;
+	let lastRawHeaders = null;
+	let failRawUrl = false;
 
 	function reset() {
 		gists.clear();
@@ -32,6 +34,8 @@ function createFakeGitHub() {
 		scenario = 'default';
 		pollAttempt = 0;
 		customScenarioHandler = null;
+		lastRawHeaders = null;
+		failRawUrl = false;
 	}
 
 	function setScenario(newScenario) {
@@ -106,6 +110,24 @@ function createFakeGitHub() {
 						return;
 					}
 
+					if (scenario === 'forbidden' && pathname.startsWith('/gists')) {
+						res.writeHead(403, {
+							'Content-Type': 'application/json'
+						});
+						res.end(JSON.stringify({ message: 'Must have push access to this repository' }));
+						return;
+					}
+
+					if (scenario === 'forbidden_rate_limit' && pathname.startsWith('/gists')) {
+						res.writeHead(403, {
+							'Content-Type': 'application/json',
+							'X-RateLimit-Remaining': '0',
+							'X-RateLimit-Reset': String(Math.floor(Date.now() / 1000) + 60)
+						});
+						res.end(JSON.stringify({ message: 'API rate limit exceeded for user' }));
+						return;
+					}
+
 					if (scenario === 'unauthorized' && pathname.startsWith('/gists')) {
 						res.writeHead(401, { 'Content-Type': 'application/json' });
 						res.end(JSON.stringify({ message: 'Bad credentials' }));
@@ -128,6 +150,15 @@ function createFakeGitHub() {
 					// 2. POST /login/oauth/access_token
 					if (method === 'POST' && pathname === '/login/oauth/access_token') {
 						pollAttempt++;
+
+						if (scenario === 'transient_500_then_success') {
+							if (pollAttempt === 1) {
+								res.writeHead(500, { 'Content-Type': 'application/json' });
+								res.end(JSON.stringify({ error: 'internal_server_error' }));
+								return;
+							}
+							// 2a tentativa em diante: sucesso
+						}
 
 						if (scenario === 'expired_token') {
 							res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -234,6 +265,12 @@ function createFakeGitHub() {
 
 					// 7. GET /raw/:id/:file (arquivos truncados)
 					if (method === 'GET' && pathname.startsWith('/raw/')) {
+						lastRawHeaders = { ...req.headers };
+						if (failRawUrl) {
+							res.writeHead(500);
+							res.end('Raw URL simulated server error');
+							return;
+						}
 						const parts = pathname.slice('/raw/'.length).split('/');
 						const id = parts[0];
 						const filename = decodeURIComponent(parts.slice(1).join('/'));
@@ -319,7 +356,9 @@ function createFakeGitHub() {
 		addGist,
 		getGist: id => gists.get(id),
 		getBaseUrl: () => baseUrl,
-		getApiBaseUrl: () => apiBaseUrl
+		getApiBaseUrl: () => apiBaseUrl,
+		getLastRawHeaders: () => lastRawHeaders,
+		setFailRawUrl: val => { failRawUrl = val; }
 	};
 }
 

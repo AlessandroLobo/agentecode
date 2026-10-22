@@ -46,11 +46,41 @@ class GistValidationError extends GistError {
 	}
 }
 
+class GistForbiddenError extends GistError {
+	constructor(message = 'Permissão insuficiente para acessar ou criar Gists no GitHub (403).', status = 403) {
+		super(message, 'FORBIDDEN', status);
+		this.name = 'GistForbiddenError';
+	}
+}
+
 class GistNetworkError extends GistError {
 	constructor(message = 'Erro de conexao com o servico de Gists do GitHub.') {
 		super(message, 'NETWORK_ERROR', 0);
 		this.name = 'GistNetworkError';
 	}
+}
+
+/**
+ * Combina timeout de 30s com um signal de cancelamento externo (E5.2).
+ * @param {number} timeoutMs
+ * @param {AbortSignal} [externalSignal]
+ * @returns {AbortSignal}
+ */
+function combineSignals(timeoutMs = 30000, externalSignal = null) {
+	const timeoutSignal = AbortSignal.timeout(timeoutMs);
+	if (!externalSignal) {
+		return timeoutSignal;
+	}
+	if (typeof AbortSignal.any === 'function') {
+		return AbortSignal.any([timeoutSignal, externalSignal]);
+	}
+	const controller = new AbortController();
+	const onAbort = function () {
+		controller.abort(this.reason);
+	};
+	timeoutSignal.addEventListener('abort', onAbort, { once: true });
+	externalSignal.addEventListener('abort', onAbort, { once: true });
+	return controller.signal;
 }
 
 /**
@@ -90,14 +120,36 @@ async function handleResponseErrors(response) {
 		throw new GistValidationError(`Erro de validacao do Gist: ${text}`);
 	}
 
-	if (response.status === 403 || response.status === 429) {
+	if (response.status === 429) {
 		const retryAfter = Number(response.headers.get('retry-after')) || 0;
 		const resetHeader = Number(response.headers.get('x-ratelimit-reset')) || 0;
 		const resetSeconds = resetHeader ? Math.max(0, resetHeader - Math.floor(Date.now() / 1000)) : 0;
 		throw new RateLimitError(
-			`Limite de requisicoes ao GitHub atingido. Tente novamente em alguns minutos.`,
+			'Limite de requisições ao GitHub atingido. Tente novamente em alguns minutos.',
 			resetSeconds,
 			retryAfter
+		);
+	}
+
+	if (response.status === 403) {
+		const remaining = response.headers.get('x-ratelimit-remaining');
+		const retryAfter = Number(response.headers.get('retry-after')) || 0;
+		const text = await response.text().catch(() => '');
+		const isRateLimit = remaining === '0' || retryAfter > 0 || /rate\s*limit|abuse/i.test(text);
+
+		if (isRateLimit) {
+			const resetHeader = Number(response.headers.get('x-ratelimit-reset')) || 0;
+			const resetSeconds = resetHeader ? Math.max(0, resetHeader - Math.floor(Date.now() / 1000)) : 0;
+			throw new RateLimitError(
+				'Limite de requisições ao GitHub atingido. Tente novamente em alguns minutos.',
+				resetSeconds,
+				retryAfter
+			);
+		}
+
+		throw new GistForbiddenError(
+			`Permissão insuficiente para acessar os Gists do GitHub: ${text || 'Acesso negado'}`,
+			response.status
 		);
 	}
 
@@ -128,7 +180,8 @@ async function findSyncGist(token, options = {}) {
 		try {
 			response = await fetchFn(url, {
 				method: 'GET',
-				headers: defaultHeaders(token)
+				headers: defaultHeaders(token),
+				signal: combineSignals(30000, options.signal)
 			});
 		} catch (err) {
 			throw new GistNetworkError(err.message);
@@ -166,6 +219,7 @@ async function findSyncGist(token, options = {}) {
  * @param {object} [options]
  * @param {string} [options.apiBaseUrl]
  * @param {typeof fetch} [options.fetchFn]
+ * @param {AbortSignal} [options.signal]
  * @returns {Promise<any>}
  */
 async function createGist(token, { description, isPublic = false, files }, options = {}) {
@@ -184,7 +238,8 @@ async function createGist(token, { description, isPublic = false, files }, optio
 		response = await fetchFn(`${apiBaseUrl}/gists`, {
 			method: 'POST',
 			headers: defaultHeaders(token, { 'Content-Type': 'application/json' }),
-			body
+			body,
+			signal: combineSignals(30000, options.signal)
 		});
 	} catch (err) {
 		throw new GistNetworkError(err.message);
@@ -198,6 +253,7 @@ async function createGist(token, { description, isPublic = false, files }, optio
  * Obtem os detalhes de um Gist pelo seu ID.
  * Suporta ETag (retorna { notModified: true } em caso de HTTP 304).
  * Baixa automaticamente o conteudo completo via raw_url caso algum arquivo venha truncated.
+ * Nunca envia o token para o raw_url e lanca erro tipado caso o download falhe.
  *
  * @param {string} token
  * @param {string} gistId
@@ -205,6 +261,7 @@ async function createGist(token, { description, isPublic = false, files }, optio
  * @param {string} [options.etag]
  * @param {string} [options.apiBaseUrl]
  * @param {typeof fetch} [options.fetchFn]
+ * @param {AbortSignal} [options.signal]
  * @returns {Promise<{ notModified: boolean, gist?: any, etag?: string }>}
  */
 async function getGist(token, gistId, options = {}) {
@@ -220,7 +277,8 @@ async function getGist(token, gistId, options = {}) {
 	try {
 		response = await fetchFn(`${apiBaseUrl}/gists/${gistId}`, {
 			method: 'GET',
-			headers
+			headers,
+			signal: combineSignals(30000, options.signal)
 		});
 	} catch (err) {
 		throw new GistNetworkError(err.message);
@@ -235,20 +293,47 @@ async function getGist(token, gistId, options = {}) {
 	const gist = await response.json();
 	const etag = response.headers.get('etag') || undefined;
 
-	// Trata arquivos truncados baixando o raw_url
+	// Trata arquivos truncados baixando o raw_url (E3)
 	if (gist && gist.files) {
 		for (const [name, fileObj] of Object.entries(gist.files)) {
-			if (fileObj && fileObj.truncated && fileObj.raw_url) {
-				try {
-					const rawRes = await fetchFn(fileObj.raw_url, {
-						headers: defaultHeaders(token)
-					});
-					if (rawRes.ok) {
-						fileObj.content = await rawRes.text();
-						fileObj.truncated = false;
+			if (fileObj && fileObj.truncated) {
+				if (fileObj.raw_url) {
+					try {
+						// NUNCA enviar token para o raw_url (outro dominio; gists secretos tem hash que dispensa autenticacao)
+						const rawHeaders = { 'User-Agent': 'AgenteCode-Sync' };
+						const rawRes = await fetchFn(fileObj.raw_url, {
+							method: 'GET',
+							headers: rawHeaders,
+							signal: combineSignals(30000, options.signal)
+						});
+						if (rawRes.ok) {
+							fileObj.content = await rawRes.text();
+							fileObj.truncated = false;
+						} else {
+							throw new GistError(
+								`Falha ao recuperar o conteúdo completo do arquivo truncado '${name}': HTTP ${rawRes.status}`,
+								'TRUNCATED',
+								rawRes.status
+							);
+						}
+					} catch (err) {
+						if (err instanceof GistError && err.code === 'TRUNCATED') {
+							throw err;
+						}
+						throw new GistError(
+							`Falha de rede ao baixar arquivo truncado '${name}': ${err.message}`,
+							'TRUNCATED',
+							0
+						);
 					}
-				} catch {
-					// se falhar o download do raw_url, mantem o arquivo como estava
+				}
+
+				if (fileObj.truncated) {
+					throw new GistError(
+						`O arquivo '${name}' foi truncado pela API do GitHub e o conteúdo completo não pôde ser recuperado.`,
+						'TRUNCATED',
+						0
+					);
 				}
 			}
 		}
@@ -269,6 +354,7 @@ async function getGist(token, gistId, options = {}) {
  * @param {object} [options]
  * @param {string} [options.apiBaseUrl]
  * @param {typeof fetch} [options.fetchFn]
+ * @param {AbortSignal} [options.signal]
  * @returns {Promise<any>}
  */
 async function updateGist(token, gistId, { description, files }, options = {}) {
@@ -285,7 +371,8 @@ async function updateGist(token, gistId, { description, files }, options = {}) {
 		response = await fetchFn(`${apiBaseUrl}/gists/${gistId}`, {
 			method: 'PATCH',
 			headers: defaultHeaders(token, { 'Content-Type': 'application/json' }),
-			body: JSON.stringify(payload)
+			body: JSON.stringify(payload),
+			signal: combineSignals(30000, options.signal)
 		});
 	} catch (err) {
 		throw new GistNetworkError(err.message);
@@ -295,15 +382,35 @@ async function updateGist(token, gistId, { description, files }, options = {}) {
 	return response.json();
 }
 
+/**
+ * Verifica se o Gist pertence ao usuario conectado (E2).
+ * @param {any} gist
+ * @param {string} currentLogin
+ * @returns {boolean}
+ */
+function isGistOwner(gist, currentLogin) {
+	if (!gist || !currentLogin || typeof currentLogin !== 'string') {
+		return false;
+	}
+	const ownerLogin = gist.owner && gist.owner.login;
+	if (!ownerLogin || typeof ownerLogin !== 'string') {
+		return false;
+	}
+	return ownerLogin.trim().toLowerCase() === currentLogin.trim().toLowerCase();
+}
+
 module.exports = {
 	GistError,
 	TokenRevokedError,
 	RateLimitError,
 	GistNotFoundError,
 	GistValidationError,
+	GistForbiddenError,
 	GistNetworkError,
 	findSyncGist,
 	createGist,
 	getGist,
-	updateGist
+	updateGist,
+	isGistOwner,
+	combineSignals
 };

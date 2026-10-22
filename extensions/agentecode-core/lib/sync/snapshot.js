@@ -8,7 +8,7 @@
 const crypto = require('crypto');
 const path = require('path');
 const config = require('./config');
-const { filterSettings } = require('./exclusions');
+const { filterSettings, filterKeybindings, filterSnippets } = require('./exclusions');
 
 /**
  * Calcula o hash SHA-256 de uma string em formato hexadecimal.
@@ -52,19 +52,66 @@ function sanitizeSnippetName(fileName) {
 }
 
 /**
- * Extrai o nome local original de um arquivo de snippet vindo do Gist.
+ * Valida rigorosamente se um nome de arquivo de snippet e seguro (prevencao de path traversal).
+ * @param {string} name
+ * @returns {boolean}
+ */
+function isValidSnippetFileName(name) {
+	if (typeof name !== 'string' || !name.trim()) {
+		return false;
+	}
+	if (name === '.' || name === '..' || /^\.+$/.test(name)) {
+		return false;
+	}
+	if (name.includes('/') || name.includes('\\')) {
+		return false;
+	}
+	if (!/^[A-Za-z0-9._-]+$/.test(name)) {
+		return false;
+	}
+	if (!name.endsWith('.json') && !name.endsWith('.code-snippets')) {
+		return false;
+	}
+	return true;
+}
+
+/**
+ * Extrai o nome local original de um arquivo de snippet vindo do Gist com validacao anti-traversal.
  * @param {string} gistFileName Nome no Gist (ex.: 'snippets--csharp.json')
- * @param {Record<string, string>} [manifestSnippetNames] Mapeamento gravado no manifesto caso tenha sido saneado
- * @returns {string} Nome original (ex.: 'csharp.json')
+ * @param {Record<string, string>} [manifestSnippetNames] Mapeamento gravado no manifesto
+ * @returns {string | null} Nome original validado ou null se for invalido/inseguro
  */
 function restoreSnippetName(gistFileName, manifestSnippetNames = {}) {
-	if (manifestSnippetNames[gistFileName]) {
-		return manifestSnippetNames[gistFileName];
+	let candidate = gistFileName;
+	if (manifestSnippetNames && typeof manifestSnippetNames === 'object' && Object.prototype.hasOwnProperty.call(manifestSnippetNames, gistFileName)) {
+		candidate = manifestSnippetNames[gistFileName];
+	} else if (gistFileName && gistFileName.startsWith(config.SNIPPET_PREFIX)) {
+		candidate = gistFileName.slice(config.SNIPPET_PREFIX.length);
 	}
-	if (gistFileName.startsWith(config.SNIPPET_PREFIX)) {
-		return gistFileName.slice(config.SNIPPET_PREFIX.length);
+
+	if (!isValidSnippetFileName(candidate)) {
+		return null;
 	}
-	return gistFileName;
+	return candidate;
+}
+
+/**
+ * Resolve com seguranca o caminho de gravacao de um snippet, garantindo que nao escape da pasta snippets/.
+ * @param {string} snippetsDir
+ * @param {string} snippetFileName
+ * @returns {string | null}
+ */
+function resolveSnippetPath(snippetsDir, snippetFileName) {
+	if (!isValidSnippetFileName(snippetFileName)) {
+		return null;
+	}
+	const resolvedDir = path.resolve(snippetsDir);
+	const targetPath = path.resolve(resolvedDir, snippetFileName);
+	const relative = path.relative(resolvedDir, targetPath);
+	if (relative.startsWith('..') || path.isAbsolute(relative) || relative === '') {
+		return null;
+	}
+	return targetPath;
 }
 
 /**
@@ -104,22 +151,30 @@ async function createLocalSnapshot({
 	const files = {};
 	const fileHashes = {};
 	const snippetNames = {};
+	const allOmitted = [];
 
 	// 1. settings.json
 	const settingsPath = path.join(userDir, config.SETTINGS_FILE);
 	const rawSettings = await readFile(settingsPath);
 	if (rawSettings !== null && rawSettings !== undefined) {
-		const filtered = filterSettings(rawSettings, customExclusions);
+		const { text: filtered, omitted } = filterSettings(rawSettings, customExclusions);
 		files[config.SETTINGS_FILE] = filtered;
 		fileHashes[config.SETTINGS_FILE] = sha256(filtered);
+		if (Array.isArray(omitted)) {
+			allOmitted.push(...omitted);
+		}
 	}
 
 	// 2. keybindings.json
 	const keybindingsPath = path.join(userDir, config.KEYBINDINGS_FILE);
 	const rawKeybindings = await readFile(keybindingsPath);
 	if (rawKeybindings !== null && rawKeybindings !== undefined) {
-		files[config.KEYBINDINGS_FILE] = rawKeybindings;
-		fileHashes[config.KEYBINDINGS_FILE] = sha256(rawKeybindings);
+		const { text: filtered, omitted } = filterKeybindings(rawKeybindings);
+		files[config.KEYBINDINGS_FILE] = filtered;
+		fileHashes[config.KEYBINDINGS_FILE] = sha256(filtered);
+		if (Array.isArray(omitted)) {
+			allOmitted.push(...omitted);
+		}
 	}
 
 	// 3. snippets/
@@ -128,15 +183,19 @@ async function createLocalSnapshot({
 		try {
 			const entries = await readDir(snippetsDir);
 			for (const entry of entries) {
-				if (entry.endsWith('.json') || entry.endsWith('.code-snippets')) {
+				if (isValidSnippetFileName(entry)) {
 					const snippetPath = path.join(snippetsDir, entry);
 					const snippetContent = await readFile(snippetPath);
 					if (snippetContent !== null && snippetContent !== undefined) {
+						const { text: filteredSnippet, omitted: snippetOmitted } = filterSnippets(snippetContent);
 						const { gistFileName, originalName, sanitized } = sanitizeSnippetName(entry);
-						files[gistFileName] = snippetContent;
-						fileHashes[gistFileName] = sha256(snippetContent);
+						files[gistFileName] = filteredSnippet;
+						fileHashes[gistFileName] = sha256(filteredSnippet);
 						if (sanitized) {
 							snippetNames[gistFileName] = originalName;
+						}
+						if (Array.isArray(snippetOmitted)) {
+							allOmitted.push(...snippetOmitted);
 						}
 					}
 				}
@@ -172,7 +231,8 @@ async function createLocalSnapshot({
 		fileHashes,
 		extensions: userExtensions,
 		compositeHash,
-		snippetNames
+		snippetNames,
+		omitted: allOmitted
 	};
 }
 
@@ -258,7 +318,9 @@ module.exports = {
 	sha256,
 	computeCompositeHash,
 	sanitizeSnippetName,
+	isValidSnippetFileName,
 	restoreSnippetName,
+	resolveSnippetPath,
 	normalizeExtensions,
 	createLocalSnapshot,
 	buildManifest,

@@ -22,6 +22,9 @@ const config = require('./config');
  * @param {string} [params.base.manifestHash] Hash composto do remoto na ultima sincronizacao
  * @param {string} [params.base.remoteUpdatedAt] updated_at remoto na ultima sincronizacao
  * @param {Record<string, string>} [params.base.files] Mapa de file -> sha256 da base
+ * @param {any} [params.gist] Objeto completo do Gist (para checagem de dono)
+ * @param {string} [params.currentLogin] Login do usuario conectado
+ * @param {boolean} [params.isConfirmedThirdParty] Se o usuario ja confirmou explicitamente o download de terceiro
  * @returns {object} Plano com decisao, diferencas de arquivos e extensoes
  */
 function createSyncPlan({
@@ -29,10 +32,24 @@ function createSyncPlan({
 	remoteFiles,
 	remoteManifest = null,
 	remoteUpdatedAt = null,
-	base = null
+	base = null,
+	gist = null,
+	currentLogin = null,
+	isConfirmedThirdParty = false
 }) {
 	const localFiles = localSnapshot.files || {};
 	const localHashes = localSnapshot.fileHashes || {};
+
+	// Checagem de dono do Gist (E2)
+	let isThirdParty = false;
+	let warning = null;
+	const remoteOwner = (gist && gist.owner && gist.owner.login) || (remoteManifest && remoteManifest.machine && remoteManifest.machine.owner);
+	if (remoteOwner && currentLogin) {
+		if (remoteOwner.trim().toLowerCase() !== currentLogin.trim().toLowerCase()) {
+			isThirdParty = true;
+			warning = 'Este Gist não é seu. Configurações de terceiros podem executar programas e instalar extensões.';
+		}
+	}
 
 	// 1. Caso sem Gist remoto (primeiro envio absoluto)
 	if (!remoteFiles) {
@@ -45,7 +62,10 @@ function createSyncPlan({
 			filesToUpload,
 			fileDiffs: [],
 			extensionsDiff: { toInstall: [], alreadyInstalled: localSnapshot.extensions, localOnly: [] },
-			summary: 'Primeiro envio de configuracoes para o GitHub.'
+			summary: 'Primeiro envio de configurações para o GitHub.',
+			isThirdParty: false,
+			canAutoSync: true,
+			warning: null
 		};
 	}
 
@@ -112,8 +132,17 @@ function createSyncPlan({
 		localOnly: localOnlyExt
 	};
 
-	// 4. Caso sem base (1a vez neste computador, mas Gist ja existe na conta)
-	if (!base) {
+	// 4. Caso sem base ou base invalida (E5.5: base sem localHash nem files deve ser tratada como sem base)
+	const hasValidBase = Boolean(
+		base &&
+		typeof base === 'object' &&
+		(
+			(typeof base.localHash === 'string' && base.localHash.length > 0) ||
+			(base.files && typeof base.files === 'object' && Object.keys(base.files).length > 0)
+		)
+	);
+
+	if (!hasValidBase) {
 		const hasRemoteItems = fileDiffs.some(d => d.status !== 'identical') || toInstall.length > 0;
 		return {
 			action: 'downloadFirst',
@@ -123,14 +152,22 @@ function createSyncPlan({
 			fileDiffs,
 			extensionsDiff,
 			filesToUpload: [],
-			summary: 'Gist existente encontrado. Recomendado baixar primeiro.'
+			summary: 'Gist existente encontrado. Recomendado baixar primeiro.',
+			isThirdParty,
+			canAutoSync: !isThirdParty,
+			requiresThirdPartyConfirmation: isThirdParty && !isConfirmedThirdParty,
+			warning
 		};
 	}
 
 	// 5. Decisao de 3 vias com base existente
 	const localCompositeHash = localSnapshot.compositeHash;
+	// E5.5: hash de fallback nao deve incluir agentecode-sync.json e LEIA-ME.md
+	const remoteKeysForHash = Object.keys(remoteFiles)
+		.filter(f => f !== config.MANIFEST_FILE && f !== config.README_FILE)
+		.sort();
 	const remoteCompositeHash = (remoteManifest && remoteManifest.compositeHash) ||
-		sha256(Object.keys(remoteFiles).sort().map(f => `${f}:${sha256(remoteFiles[f])}\n`).join(''));
+		sha256(remoteKeysForHash.map(f => `${f}:${sha256(remoteFiles[f])}\n`).join(''));
 
 	// Local mudou desde a base?
 	let localChanged = false;
@@ -163,16 +200,16 @@ function createSyncPlan({
 
 	if (!localChanged && !remoteChanged) {
 		action = 'nothing';
-		summary = 'Nenhuma mudanca detectada (tudo sincronizado).';
+		summary = 'Nenhuma mudança detectada (tudo sincronizado).';
 	} else if (localChanged && !remoteChanged) {
 		action = 'upload';
 		summary = `${filesToUpload.length} arquivo(s) modificado(s) localmente para enviar.`;
 	} else if (!localChanged && remoteChanged) {
 		action = 'notifyDownload';
-		summary = 'Existem configuracoes mais novas no GitHub prontas para download.';
+		summary = 'Existem configurações mais novas no GitHub prontas para download.';
 	} else {
 		action = 'conflict';
-		summary = 'As configuracoes mudaram neste computador e tambem no GitHub (conflito).';
+		summary = 'As configurações mudaram neste computador e também no GitHub (conflito).';
 	}
 
 	return {
@@ -183,7 +220,11 @@ function createSyncPlan({
 		fileDiffs,
 		extensionsDiff,
 		filesToUpload,
-		summary
+		summary,
+		isThirdParty,
+		canAutoSync: !isThirdParty,
+		requiresThirdPartyConfirmation: isThirdParty && !isConfirmedThirdParty,
+		warning
 	};
 }
 

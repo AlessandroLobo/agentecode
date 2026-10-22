@@ -159,6 +159,9 @@ function cleanJsoncForParse(text) {
  * @returns {any}
  */
 function parseJsonc(text) {
+	if (text && typeof text === 'object' && typeof text.text === 'string') {
+		text = text.text;
+	}
 	if (typeof text !== 'string' || !text.trim()) {
 		return {};
 	}
@@ -284,9 +287,25 @@ function stripProperties(text, shouldExcludeFn) {
 				tokenIndex = valEndIndex;
 			}
 
+			// Extrai o valor escalar ou lista de strings contidas
+			let propertyValue;
+			if (valTok.type === 'string') {
+				propertyValue = valTok.value;
+			} else if (valTok.value === '{' || valTok.value === '[') {
+				const innerStrings = [];
+				for (let k = valSig; k < valEndIndex; k++) {
+					if (tokens[k].type === 'string') {
+						innerStrings.push(tokens[k].value);
+					}
+				}
+				propertyValue = innerStrings;
+			} else {
+				propertyValue = valTok.value;
+			}
+
 			// Avalia se a propriedade deve ser excluida
 			const isTopLevel = currentPath === '';
-			const mustExclude = shouldExcludeFn(fullKeyPath, key, isTopLevel);
+			const mustExclude = shouldExcludeFn(fullKeyPath, key, isTopLevel, propertyValue);
 			if (mustExclude) {
 				let startPos = tokens[entryStartToken].start;
 				let endPos;
@@ -345,7 +364,109 @@ function stripProperties(text, shouldExcludeFn) {
 		}
 	}
 
-	parseObject('');
+	function parseRootArray() {
+		const firstPunct = nextSignificant();
+		if (firstPunct === -1 || tokens[firstPunct].value !== '[') {
+			return;
+		}
+		tokenIndex = firstPunct + 1;
+		let prevCommaIndex = -1;
+
+		while (tokenIndex < tokens.length) {
+			const sig = nextSignificant();
+			if (sig === -1) {
+				break;
+			}
+			if (tokens[sig].value === ']') {
+				tokenIndex = sig + 1;
+				break;
+			}
+
+			let entryStartToken = sig;
+			let backward = sig - 1;
+			while (backward > (prevCommaIndex !== -1 ? prevCommaIndex : firstPunct)) {
+				const t = tokens[backward];
+				if (t.type === 'line-comment' || t.type === 'block-comment') {
+					entryStartToken = backward;
+					backward--;
+				} else if (t.type === 'whitespace') {
+					if (t.raw.includes('\n\n') || t.raw.includes('\r\n\r\n')) {
+						break;
+					}
+					backward--;
+				} else {
+					break;
+				}
+			}
+
+			const itemStartSig = sig;
+			let itemEndIndex;
+			const itemTok = tokens[sig];
+			if (itemTok.value === '{') {
+				parseObject('');
+				itemEndIndex = tokenIndex;
+			} else if (itemTok.value === '[') {
+				parseArray();
+				itemEndIndex = tokenIndex;
+			} else {
+				tokenIndex = sig + 1;
+				itemEndIndex = tokenIndex;
+			}
+
+			const commaSig = nextSignificant(itemEndIndex);
+			let commaIndex = -1;
+			if (commaSig !== -1 && tokens[commaSig].value === ',') {
+				commaIndex = commaSig;
+				tokenIndex = commaSig + 1;
+			} else {
+				tokenIndex = itemEndIndex;
+			}
+
+			const innerStrings = [];
+			for (let k = itemStartSig; k < itemEndIndex; k++) {
+				if (tokens[k].type === 'string') {
+					innerStrings.push(tokens[k].value);
+				}
+			}
+
+			const mustExclude = shouldExcludeFn('', '', false, innerStrings);
+			if (mustExclude) {
+				let startPos = tokens[entryStartToken].start;
+				let endPos;
+
+				if (commaIndex !== -1) {
+					endPos = tokens[commaIndex].end;
+					if (commaIndex + 1 < tokens.length && tokens[commaIndex + 1].type === 'whitespace') {
+						const ws = tokens[commaIndex + 1].raw;
+						const nl = ws.indexOf('\n');
+						if (nl !== -1) {
+							endPos += nl + 1;
+						} else {
+							endPos += ws.length;
+						}
+					}
+				} else if (prevCommaIndex !== -1) {
+					startPos = tokens[prevCommaIndex].start;
+					endPos = tokens[itemEndIndex - 1].end;
+				} else {
+					endPos = tokens[itemEndIndex - 1].end;
+				}
+
+				rangesToRemove.push({ start: startPos, end: endPos });
+			} else {
+				prevCommaIndex = commaIndex;
+			}
+		}
+	}
+
+	const rootPunct = nextSignificant(0);
+	if (rootPunct !== -1) {
+		if (tokens[rootPunct].value === '{') {
+			parseObject('');
+		} else if (tokens[rootPunct].value === '[') {
+			parseRootArray();
+		}
+	}
 
 	// Ordena intervalos do final para o inicio para nao deslocar os indices
 	rangesToRemove.sort((a, b) => b.start - a.start);
@@ -355,8 +476,18 @@ function stripProperties(text, shouldExcludeFn) {
 		result = result.slice(0, range.start) + result.slice(range.end);
 	}
 
-	// Limpa virgulas residuais invalidas caso reste algo antes de '}'
+	// Limpa virgulas residuais invalidas caso reste algo antes de '}' ou ']'
 	result = result.replace(/,\s*([}\]])/g, '$1');
+
+	// Estetica (E5.4): normaliza objetos/arrays vazios resultantes de remocoes
+	result = result.replace(/\{\s*\}/g, '{}');
+	result = result.replace(/\[\s*\]/g, '[]');
+
+	// Remove espacos em branco residuais em linhas vazias
+	result = result.replace(/\n[ \t]+(?=\r?\n)/g, '\n');
+
+	// Normaliza quebras de linha excessivas
+	result = result.replace(/(?:\r?\n){3,}/g, '\n\n');
 
 	return result;
 }

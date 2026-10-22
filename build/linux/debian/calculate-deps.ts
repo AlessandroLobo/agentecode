@@ -35,7 +35,13 @@ function calculatePackageDeps(binaryPath: string, arch: DebianArchString, chromi
 	});
 	const dpkgShlibdepsUrl = `https://raw.githubusercontent.com/chromium/chromium/${chromiumManifest[0].version}/third_party/dpkg-shlibdeps/dpkg-shlibdeps.pl`;
 	const dpkgShlibdepsScriptLocation = `${tmpdir()}/dpkg-shlibdeps.pl`;
-	const result = spawnSync('curl', [dpkgShlibdepsUrl, '-o', dpkgShlibdepsScriptLocation]);
+	// AgenteCode: raw.githubusercontent.com answers 429 to GitHub runners; -f keeps the error page out of the script, and it is retried.
+	const curlArgs = ['-fsSL', dpkgShlibdepsUrl, '-o', dpkgShlibdepsScriptLocation];
+	let result = spawnSync('curl', curlArgs);
+	for (let attempt = 1; result.status !== 0 && attempt < 6; attempt++) {
+		spawnSync('sleep', [String(attempt * 20)]);
+		result = spawnSync('curl', curlArgs);
+	}
 	if (result.status !== 0) {
 		throw new Error('Cannot retrieve dpkg-shlibdeps. Stderr:\n' + result.stderr);
 	}

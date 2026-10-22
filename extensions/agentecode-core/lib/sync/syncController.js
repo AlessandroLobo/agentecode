@@ -19,6 +19,7 @@ const plan = require('./plan');
 const backup = require('./backup');
 const { isFirstTimeGuide, markGuideShown, openGuide, GUIDE_SHOWN_KEY } = require('./guia');
 const ui = require('./ui');
+const { mergeExcludedSettings } = require('./exclusions');
 
 const TOKEN_SECRET_KEY = 'agentecode.sync.githubToken';
 const LAST_SYNC_KEY = 'agentecode.sync.lastSync';
@@ -255,7 +256,18 @@ class SyncController {
 
 			ui.updateStatusBar(this.statusBar, 'syncing');
 
-			await this._uploadWithToken(token, 'Primeiro envio de configurações');
+			const outcome = await this._uploadWithToken(token, 'Primeiro envio de configurações');
+			if (outcome === 'download') {
+				await this.downloadFromGitHub();
+				return;
+			}
+			if (outcome !== 'uploaded' && outcome !== 'skipped') {
+				ui.updateStatusBar(this.statusBar, outcome === 'notifyDownload' ? 'idle' : 'conflict');
+				if (outcome === 'notifyDownload') {
+					void vscode.window.showInformationMessage('O GitHub já tem configurações mais novas. Use "Baixar do GitHub" no menu para aplicá-las.');
+				}
+				return;
+			}
 
 			const lastSync = this.getLastSync();
 			const gistUrl = lastSync ? lastSync.gistUrl : '';
@@ -293,9 +305,21 @@ class SyncController {
 			}
 
 			ui.updateStatusBar(this.statusBar, 'syncing');
-			await this._uploadWithToken(token, 'Envio manual');
-			ui.updateStatusBar(this.statusBar, 'synced', 'Configurações sincronizadas');
-			void vscode.window.showInformationMessage('Configurações enviadas para o GitHub com sucesso.');
+			const outcome = await this._uploadWithToken(token, 'Envio manual');
+			if (outcome === 'download') {
+				await this.downloadFromGitHub();
+			} else if (outcome === 'cancelled' || outcome === 'blocked') {
+				ui.updateStatusBar(this.statusBar, 'conflict');
+			} else if (outcome === 'notifyDownload') {
+				ui.updateStatusBar(this.statusBar, 'idle');
+				void vscode.window.showInformationMessage('O GitHub tem configurações mais novas que as deste computador. Use "Baixar do GitHub" para aplicá-las.');
+			} else if (outcome === 'skipped') {
+				ui.updateStatusBar(this.statusBar, 'synced', 'Configurações sincronizadas');
+				void vscode.window.showInformationMessage('Nada a enviar: tudo já está igual ao GitHub.');
+			} else {
+				ui.updateStatusBar(this.statusBar, 'synced', 'Configurações sincronizadas');
+				void vscode.window.showInformationMessage('Configurações enviadas para o GitHub com sucesso.');
+			}
 		} catch (err) {
 			this.log.error('Erro em uploadNow:', err);
 			ui.updateStatusBar(this.statusBar, 'idle');
@@ -303,7 +327,14 @@ class SyncController {
 		}
 	}
 
-	async _uploadWithToken(token, reason = '') {
+	/**
+	 * Envia as configuracoes locais para o Gist, mas so depois de compara-las com o remoto.
+	 * @param {string} token
+	 * @param {string} reason
+	 * @param {{auto?: boolean, force?: boolean}} [options] force sobrescreve o remoto sem comparar (decisao explicita do usuario)
+	 * @returns {Promise<'uploaded'|'skipped'|'notifyDownload'|'blocked'|'cancelled'|'download'>}
+	 */
+	async _uploadWithToken(token, reason = '', options = {}) {
 		this.isSyncing = true;
 		try {
 			const customExclusions = this.getCustomExclusions();
@@ -345,21 +376,57 @@ class SyncController {
 					files: gistFiles
 				});
 			} else {
-				this.log.info(`Gist existente encontrado (${gist.id}). Atualizando arquivos...`);
-				// Checagem de dono
 				const login = this.getUserLogin();
 				if (login && !gistClient.isGistOwner(gist, login)) {
 					throw new Error('Não é permitido sobrescrever automaticamente o Gist pertencente a outro usuário.');
 				}
+
+				if (!options.force) {
+					// Nunca sobrescreve o remoto sem ler o que ha la
+					const details = await gistClient.getGist(token, gist.id);
+					const fullGist = details.gist || gist;
+					const remoteData = snapshot.parseRemoteGistFiles(fullGist.files);
+					const syncPlan = plan.createSyncPlan({
+						localSnapshot: localSnap,
+						remoteFiles: remoteData.files,
+						remoteManifest: remoteData.manifest,
+						remoteUpdatedAt: fullGist.updated_at,
+						base: this.getLastSync(),
+						gist: fullGist,
+						currentLogin: login
+					});
+					const decision = plan.decideUpload(syncPlan, { auto: Boolean(options.auto) });
+
+					if (decision === 'skip') {
+						this.log.info('Nada a enviar: local e GitHub já estão iguais.');
+						return 'skipped';
+					}
+					if (decision === 'notifyDownload') {
+						this.log.info('O GitHub tem configurações mais novas; envio não necessário.');
+						return 'notifyDownload';
+					}
+					if (decision === 'blocked') {
+						this.log.warn('Envio automático bloqueado: o GitHub mudou. É preciso resolver manualmente.');
+						return 'blocked';
+					}
+					if (decision === 'askConflict') {
+						const choice = await ui.showConflictModal();
+						if (choice === 'download') {
+							return 'download';
+						}
+						if (choice !== 'upload') {
+							return 'cancelled';
+						}
+					}
+				}
+
+				this.log.info(`Atualizando Gist (${gist.id})...`);
 				gist = await gistClient.updateGist(token, gist.id, {
 					files: gistFiles
 				});
 			}
 
-			// Grava backup local antes de finalizar
-			await backup.createBackup(this.userDir, this.backupDir);
-
-			const lastSyncData = {
+			await this.setLastSync({
 				gistId: gist.id,
 				gistUrl: gist.html_url,
 				remoteUpdatedAt: gist.updated_at,
@@ -367,10 +434,9 @@ class SyncController {
 				localHash: localSnap.compositeHash,
 				timestamp: Date.now(),
 				reason
-			};
-
-			await this.setLastSync(lastSyncData);
+			});
 			this.log.info('Upload concluído com sucesso. Gist:', gist.html_url);
+			return 'uploaded';
 		} finally {
 			this.isSyncing = false;
 		}
@@ -430,7 +496,7 @@ class SyncController {
 			if (syncPlan.action === 'conflict') {
 				const conflictDecision = await ui.showConflictModal();
 				if (conflictDecision === 'upload') {
-					await this._uploadWithToken(token, 'Resolução de conflito: sobrescrever remoto');
+					await this._uploadWithToken(token, 'Resolução de conflito: sobrescrever remoto', { force: true });
 					ui.updateStatusBar(this.statusBar, 'synced');
 					void vscode.window.showInformationMessage('GitHub atualizado com as configurações deste computador.');
 					return;
@@ -495,6 +561,7 @@ class SyncController {
 				gistId: fullGist.id,
 				gistUrl: fullGist.html_url,
 				remoteUpdatedAt: fullGist.updated_at,
+				etag: gistDetails.etag,
 				manifestHash: remoteData.manifest?.compositeHash || updatedLocalSnap.compositeHash,
 				localHash: updatedLocalSnap.compositeHash,
 				timestamp: Date.now(),
@@ -518,6 +585,12 @@ class SyncController {
 		}
 	}
 
+	async _writeFileAtomic(dest, content) {
+		const tmp = `${dest}.agentecode-tmp`;
+		await fs.promises.writeFile(tmp, content, 'utf8');
+		await fs.promises.rename(tmp, dest);
+	}
+
 	async _applyRemoteFiles(files, remoteManifest) {
 		const snippetsDir = path.join(this.userDir, 'snippets');
 		await fs.promises.mkdir(snippetsDir, { recursive: true });
@@ -529,7 +602,13 @@ class SyncController {
 
 			if (name === config.SETTINGS_FILE || name === config.KEYBINDINGS_FILE) {
 				const dest = path.join(this.userDir, name);
-				await fs.promises.writeFile(dest, content, 'utf8');
+				let finalContent = content;
+				if (name === config.SETTINGS_FILE) {
+					// Mantem o que nunca sai deste computador (chaves, caminhos, config do sync)
+					const localText = await fs.promises.readFile(dest, 'utf8').catch(() => null);
+					finalContent = mergeExcludedSettings(content, localText, this.getCustomExclusions());
+				}
+				await this._writeFileAtomic(dest, finalContent);
 				continue;
 			}
 
@@ -539,7 +618,7 @@ class SyncController {
 				if (safeName) {
 					const targetPath = snapshot.resolveSnippetPath(snippetsDir, safeName);
 					if (targetPath) {
-						await fs.promises.writeFile(targetPath, content, 'utf8');
+						await this._writeFileAtomic(targetPath, content);
 					}
 				}
 			}
@@ -721,8 +800,15 @@ class SyncController {
 
 					this.log.info('Mudança detectada nas configurações locais. Disparando envio automático...');
 					ui.updateStatusBar(this.statusBar, 'syncing');
-					await this._uploadWithToken(token, 'Envio automático');
-					ui.updateStatusBar(this.statusBar, 'synced');
+					const outcome = await this._uploadWithToken(token, 'Envio automático', { auto: true });
+					if (outcome === 'blocked') {
+						ui.updateStatusBar(this.statusBar, 'conflict');
+						void vscode.window.showWarningMessage('A sincronização automática foi pausada: as configurações mudaram aqui e no GitHub. Abra o menu de sincronização para resolver.');
+					} else if (outcome === 'notifyDownload') {
+						ui.updateStatusBar(this.statusBar, 'idle');
+					} else {
+						ui.updateStatusBar(this.statusBar, 'synced');
+					}
 				} catch (err) {
 					this.log.warn('Falha no envio automático:', err.message);
 					ui.updateStatusBar(this.statusBar, 'idle');

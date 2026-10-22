@@ -6,7 +6,7 @@
 'use strict';
 
 const config = require('./config');
-const { stripProperties } = require('./jsonc');
+const { stripProperties, tokenize } = require('./jsonc');
 
 /**
  * Avalia se um valor de texto contem credenciais, tokens ou chaves secretas (defesa em profundidade).
@@ -177,7 +177,109 @@ function filterSnippets(snippetJsonc) {
 	return createFilterResult(filtered, omitted);
 }
 
+/**
+ * Lista as propriedades de nivel raiz de um objeto JSONC, com o texto bruto de cada uma.
+ * @param {string} text
+ * @returns {{ key: string, raw: string, strings: string[] }[]}
+ */
+function extractTopLevelProperties(text) {
+	const tokens = tokenize(text);
+	const sig = tokens.filter(t => t.type !== 'whitespace' && t.type !== 'line-comment' && t.type !== 'block-comment');
+	const result = [];
+	let depth = 0;
+	let i = 0;
+	for (; i < sig.length; i++) {
+		if (sig[i].value === '{' && sig[i].type !== 'string') {
+			depth = 1;
+			i++;
+			break;
+		}
+	}
+	while (i < sig.length && depth === 1) {
+		const keyTok = sig[i];
+		if (keyTok.type !== 'string') {
+			if (keyTok.value === '}') {
+				break;
+			}
+			i++;
+			continue;
+		}
+		const colon = sig[i + 1];
+		if (!colon || colon.value !== ':') {
+			i++;
+			continue;
+		}
+		let j = i + 2;
+		let nested = 0;
+		const strings = [];
+		for (; j < sig.length; j++) {
+			const t = sig[j];
+			if (t.type === 'string') {
+				if (nested > 0) {
+					strings.push(t.value);
+				} else if (j === i + 2) {
+					strings.push(t.value);
+				}
+				continue;
+			}
+			if (t.value === '{' || t.value === '[') {
+				nested++;
+			} else if (t.value === '}' || t.value === ']') {
+				if (nested === 0) {
+					break;
+				}
+				nested--;
+			} else if (t.value === ',' && nested === 0) {
+				break;
+			}
+		}
+		const last = sig[j - 1];
+		result.push({ key: keyTok.value, raw: text.slice(keyTok.start, last.end), strings });
+		i = j + (sig[j] && sig[j].value === ',' ? 1 : 0);
+	}
+	return result;
+}
+
+/**
+ * Reinsere no texto remoto as propriedades de nivel raiz do settings local que o filtro
+ * de envio omite (segredos, caminhos da maquina, config do proprio sync). Assim, baixar
+ * nao apaga configuracoes que nunca sairam deste computador. O valor local prevalece.
+ *
+ * @param {string} remoteText
+ * @param {string} localText
+ * @param {string[]} [customExclusions]
+ * @returns {string}
+ */
+function mergeExcludedSettings(remoteText, localText, customExclusions = []) {
+	if (typeof localText !== 'string' || !localText.trim()) {
+		return remoteText;
+	}
+	if (typeof remoteText !== 'string' || !remoteText.trim()) {
+		remoteText = '{\n}\n';
+	}
+
+	// Pega o texto bruto de cada propriedade excluida do nivel raiz
+	const props = extractTopLevelProperties(localText);
+	const excluded = props.filter(p => isExcludedSetting(p.key, p.key, p.strings.length === 1 ? p.strings[0] : p.strings, customExclusions));
+	if (excluded.length === 0) {
+		return remoteText;
+	}
+	const inner = excluded.map(p => p.raw).join(',\n\t');
+	const localKeys = new Set(excluded.map(p => p.key));
+	const cleanedRemote = stripProperties(remoteText, (keyPath, keyName, isTopLevel) => isTopLevel && localKeys.has(keyName));
+
+	const rOpen = cleanedRemote.indexOf('{');
+	const rClose = cleanedRemote.lastIndexOf('}');
+	if (rOpen === -1 || rClose <= rOpen) {
+		return remoteText;
+	}
+	const head = cleanedRemote.slice(0, rClose).replace(/\s+$/, '');
+	const needsComma = !/[{,]$/.test(head.replace(/(\/\/[^\n]*|\/\*[\s\S]*?\*\/)\s*$/, '').trimEnd());
+	return `${head}${needsComma ? ',' : ''}\n\t${inner}\n${cleanedRemote.slice(rClose)}`;
+}
+
 module.exports = {
+	mergeExcludedSettings,
 	isSensitiveValue,
 	isExcludedSetting,
 	filterSettings,

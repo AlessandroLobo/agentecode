@@ -228,6 +228,34 @@ function createSyncPlan({
 	};
 }
 
+/**
+ * Decide o que fazer ao tentar enviar, dado o plano calculado contra o Gist atual.
+ * Nunca sobrescreve o remoto sem que ele tenha sido comparado antes.
+ *
+ * @param {{action: string, hasChanges: boolean}} syncPlan
+ * @param {{auto: boolean}} options
+ * @returns {'upload'|'skip'|'notifyDownload'|'askConflict'|'blocked'}
+ */
+function decideUpload(syncPlan, { auto }) {
+	switch (syncPlan.action) {
+		case 'initialUpload':
+		case 'upload':
+			return 'upload';
+		case 'nothing':
+			return 'skip';
+		case 'notifyDownload':
+			return 'notifyDownload';
+		case 'downloadFirst':
+			if (!syncPlan.hasChanges) {
+				return 'upload';
+			}
+			return auto ? 'blocked' : 'askConflict';
+		default:
+			return auto ? 'blocked' : 'askConflict';
+	}
+}
+
 module.exports = {
+	decideUpload,
 	createSyncPlan
 };

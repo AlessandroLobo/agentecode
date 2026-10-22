@@ -1191,4 +1191,38 @@ describe('Sincronizacao de Configuracoes - Nucleo Puro', () => {
 		});
 	});
 
+
+	describe('Correcoes de revisao', () => {
+		test('baixar preserva configuracoes locais excluidas do envio', () => {
+			const local = `{
+	"editor.fontSize": 14,
+	"claudeCode.environmentVariables": [{ "name": "ANTHROPIC_API_KEY", "value": "SEGREDO-LOCAL" }],
+	"git.path": "C:/Git/git.exe",
+	"agentecode.sync.auto": true
+}`;
+			const remote = exclusions.filterSettings('{ "editor.fontSize": 18, "workbench.colorTheme": "Novo" }').text;
+			const merged = exclusions.mergeExcludedSettings(remote, local);
+			const parsed = jsonc.parseJsonc(merged);
+			assert.equal(parsed['editor.fontSize'], 18);
+			assert.equal(parsed['workbench.colorTheme'], 'Novo');
+			assert.equal(parsed['git.path'], 'C:/Git/git.exe');
+			assert.equal(parsed['agentecode.sync.auto'], true);
+			assert.equal(parsed['claudeCode.environmentVariables'][0].value, 'SEGREDO-LOCAL');
+		});
+
+		test('mesclagem nao altera nada quando o local nao tem itens excluidos', () => {
+			const remote = '{ "editor.fontSize": 18 }';
+			assert.equal(exclusions.mergeExcludedSettings(remote, '{ "editor.tabSize": 2 }'), remote);
+		});
+
+		test('decideUpload nunca envia sem comparar com o remoto', () => {
+			assert.equal(plan.decideUpload({ action: 'upload', hasChanges: true }, { auto: true }), 'upload');
+			assert.equal(plan.decideUpload({ action: 'nothing', hasChanges: false }, { auto: false }), 'skip');
+			assert.equal(plan.decideUpload({ action: 'notifyDownload', hasChanges: true }, { auto: true }), 'notifyDownload');
+			assert.equal(plan.decideUpload({ action: 'conflict', hasChanges: true }, { auto: true }), 'blocked');
+			assert.equal(plan.decideUpload({ action: 'conflict', hasChanges: true }, { auto: false }), 'askConflict');
+			assert.equal(plan.decideUpload({ action: 'downloadFirst', hasChanges: true }, { auto: false }), 'askConflict');
+		});
+	});
+
 });

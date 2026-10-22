@@ -1,9 +1,15 @@
 name: Release Linux
 
 # Gera o pacote .deb do AgenteCode para Linux (x64).
-# Execução SOMENTE manual enquanto o build do Linux é validado; não dispara por tag.
-# Nada é publicado a menos que o campo "tag" seja preenchido com uma tag que já exista.
+# - Push de tag v*: gera o .deb e anexa à Release da tag (junto do instalador do Windows).
+# - Push na branch linux-ci: só gera o artefato (execução de teste, nada é publicado).
+# - Manual: só gera o artefato, a menos que o campo "tag" aponte para uma tag que já exista.
 on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - linux-ci
   workflow_dispatch:
     inputs:
       version:
@@ -75,7 +81,8 @@ jobs:
           set -e
           mkdir -p dist
           deb=$(ls .build/linux/deb/*/deb/*.deb | head -n1)
-          name="AgenteCode-linux-x64-${{ inputs.version }}.deb"
+          version="${{ github.ref_type == 'tag' && github.ref_name || inputs.version || 'v0.0.0-dev' }}"
+          name="AgenteCode-linux-x64-${version}.deb"
           cp "$deb" "dist/$name"
           (cd dist && sha256sum "$name" > "$name.sha256")
           echo "name=$name" >> "$GITHUB_OUTPUT"
@@ -88,10 +95,10 @@ jobs:
           path: dist/*
           if-no-files-found: error
 
-      - name: Anexar à Release (só se uma tag foi informada)
-        if: inputs.tag != ''
+      - name: Anexar à Release (só com tag)
+        if: github.ref_type == 'tag' || inputs.tag != ''
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.tag }}
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}
           files: dist/*
-          prerelease: ${{ contains(inputs.tag, '-') }}
+          prerelease: ${{ contains(github.ref_type == 'tag' && github.ref_name || inputs.tag, '-') }}

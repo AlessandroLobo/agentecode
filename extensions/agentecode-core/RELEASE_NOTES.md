@@ -2,6 +2,17 @@
 
 Uma seção por versão, da mais nova para a mais antiga. O título de cada seção precisa ter o formato `## vX.Y.Z - data`.
 
+## v1.0.4 - 22/10/2026
+
+Sincronização nativa de configurações, atalhos, snippets e extensões via GitHub Gist secreto.
+
+- **Login simples por código no navegador:** Conexão direta com a sua conta do GitHub via OAuth Device Flow, sem a necessidade de gerar ou digitar tokens manualmente.
+- **Armazenamento em Gist secreto:** Todas as suas configurações (`settings.json`, `keybindings.json`, snippets e extensões instaladas) são sincronizadas em um Gist da sua própria conta do GitHub.
+- **Segurança e privacidade garantidas:** Chaves de API, senhas, tokens e caminhos locais específicos de máquina são filtrados e removidos automaticamente antes do envio.
+- **Sincronização automática e resolução de conflitos:** Detecção de alterações com envio automático após alguns segundos de inatividade, verificação silenciosa ao iniciar e detecção inteligente de conflitos com opção de pré-visualização.
+- **Cópia de segurança com 1 clique para desfazer:** Cada aplicação de configurações cria um backup local automático dos últimos 10 estados, permitindo desfazer a qualquer momento pelo menu.
+- **Guia passo a passo explicativo:** Guia integrado acessível no primeiro uso ou pelo menu **Sync Settings with GitHub...** e pelo comando **AgenteCode: Sincronização - Ver guia**.
+
 ## v1.0.3 - 21/10/2026
 
 Barra de uso do Claude com cores que acompanham o consumo.

@@ -192,3 +192,7 @@ extensions/agentecode-core/lib/sync/gistClient.js
 extensions/agentecode-core/lib/sync/backup.js
 extensions/agentecode-core/test/fakeGitHub.js
 extensions/agentecode-core/test/sync.test.js
+extensions/agentecode-core/lib/sync/guia.js
+extensions/agentecode-core/lib/sync/ui.js
+extensions/agentecode-core/lib/sync/syncController.js
+extensions/agentecode-core/lib/sync/index.js

@@ -528,6 +528,24 @@ MenuRegistry.appendMenuItem(MenuId.GlobalActivity, {
 	order: 1
 });
 
+MenuRegistry.appendMenuItem(MenuId.GlobalActivity, {
+	group: '5_settings',
+	command: {
+		id: 'agentecode.sync.menu',
+		title: localize('syncSettingsWithGitHub', "Sync Settings with GitHub...")
+	},
+	order: 2
+});
+
+MenuRegistry.appendMenuItem(MenuId.AccountsContext, {
+	group: '1_settings',
+	command: {
+		id: 'agentecode.sync.menu',
+		title: localize('syncSettingsWithGitHub', "Sync Settings with GitHub...")
+	},
+	order: 1
+});
+
 MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
 	group: 'z_ConfirmClose',
 	command: {

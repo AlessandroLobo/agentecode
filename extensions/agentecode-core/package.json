@@ -2,7 +2,7 @@
   "name": "agentecode-core",
   "displayName": "AgenteCode Core",
   "description": "Recursos próprios do AgenteCode: histórico de sessões do agente, volta de arquivos (checkpoint), exportação para Markdown e notas de versão.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "publisher": "agentecode",
   "license": "MIT",
   "icon": "media/icon.png",
@@ -17,6 +17,16 @@
     "onCommand:agentecode.exportSessionToMarkdown",
     "onCommand:agentecode.undoLastRewind",
     "onCommand:agentecode.showReleaseNotes",
+    "onCommand:agentecode.sync.menu",
+    "onCommand:agentecode.sync.connect",
+    "onCommand:agentecode.sync.upload",
+    "onCommand:agentecode.sync.download",
+    "onCommand:agentecode.sync.copyGistUrl",
+    "onCommand:agentecode.sync.openGist",
+    "onCommand:agentecode.sync.toggleAuto",
+    "onCommand:agentecode.sync.undoLast",
+    "onCommand:agentecode.sync.disconnect",
+    "onCommand:agentecode.sync.guide",
     "onView:agentecode.sessions"
   ],
   "main": "./extension.js",
@@ -95,6 +105,64 @@
       {
         "command": "claudeUsageBar.enableDirect",
         "title": "Claude Usage: Ativar limites 5h/7d (consulta à API de uso)"
+      },
+      {
+        "command": "agentecode.sync.menu",
+        "title": "Sincronizar configurações com o GitHub...",
+        "category": "AgenteCode",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "agentecode.sync.connect",
+        "title": "Sincronização: Conectar e enviar",
+        "category": "AgenteCode",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "agentecode.sync.upload",
+        "title": "Sincronização: Enviar agora",
+        "category": "AgenteCode",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "agentecode.sync.download",
+        "title": "Sincronização: Baixar do GitHub",
+        "category": "AgenteCode",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "agentecode.sync.copyGistUrl",
+        "title": "Sincronização: Copiar URL do Gist",
+        "category": "AgenteCode",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "agentecode.sync.openGist",
+        "title": "Sincronização: Abrir Gist no navegador",
+        "category": "AgenteCode",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "agentecode.sync.toggleAuto",
+        "title": "Sincronização: Alternar envio automático",
+        "category": "AgenteCode"
+      },
+      {
+        "command": "agentecode.sync.undoLast",
+        "title": "Sincronização: Desfazer última sincronização",
+        "category": "AgenteCode",
+        "icon": "$(discard)"
+      },
+      {
+        "command": "agentecode.sync.disconnect",
+        "title": "Sincronização: Desconectar",
+        "category": "AgenteCode"
+      },
+      {
+        "command": "agentecode.sync.guide",
+        "title": "Sincronização: Ver guia",
+        "category": "AgenteCode",
+        "icon": "$(book)"
       }
     ],
     "configuration": {
@@ -233,6 +301,46 @@
           "minimum": 0,
           "maximum": 100,
           "description": "Uso (%) a partir do qual a cor é vermelha e o alerta de fundo da barra é ligado. Precisa ser maior que o âmbar, que precisa ser maior que o início; fora de ordem valem 50, 75 e 90."
+        },
+        "agentecode.sync.auto": {
+          "type": "boolean",
+          "default": true,
+          "description": "Envia alterações locais automaticamente após alguns segundos de inatividade (somente enquanto conectado)."
+        },
+        "agentecode.sync.autoDelaySeconds": {
+          "type": "number",
+          "default": 30,
+          "minimum": 10,
+          "description": "Tempo de espera em segundos após a última alteração antes de disparar o envio automático."
+        },
+        "agentecode.sync.checkOnStartup": {
+          "type": "boolean",
+          "default": true,
+          "description": "Verifica se há atualizações remotas no Gist ao iniciar o AgenteCode."
+        },
+        "agentecode.sync.excludedSettings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "claudeCode.environmentVariables",
+            "claudeCode.claudeProcessWrapper",
+            "claudeUsageBar.limitsSnapshotPath",
+            "git.path",
+            "python.defaultInterpreterPath"
+          ],
+          "description": "Chaves de configuração que nunca serão enviadas ao Gist (chaves contendo tokens, senhas ou segredos são ignoradas automaticamente)."
+        },
+        "agentecode.sync.syncSnippets": {
+          "type": "boolean",
+          "default": true,
+          "description": "Inclui trechos de código (snippets) do usuário na sincronização."
+        },
+        "agentecode.sync.syncExtensions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Inclui a lista de extensões instaladas pelo usuário na sincronização."
         }
       }
     },

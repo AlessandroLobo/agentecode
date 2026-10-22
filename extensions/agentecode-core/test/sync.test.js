@@ -974,4 +974,221 @@ describe('Sincronizacao de Configuracoes - Nucleo Puro', () => {
 		});
 	});
 
+	describe('9. Guia de Primeiro Uso e Validacao de Midia', () => {
+		const Module = require('node:module');
+		const originalLoad = Module._load;
+
+		before(() => {
+			Module._load = function (request, parent, isMain) {
+				if (request === 'vscode') {
+					return {
+						commands: { registerCommand: () => ({ dispose() {} }) },
+						window: { showWarningMessage: () => {} },
+						Uri: { file: f => ({ fsPath: f }) }
+					};
+				}
+				return originalLoad.apply(this, arguments);
+			};
+		});
+
+		after(() => {
+			Module._load = originalLoad;
+		});
+
+		test('arquivo guia.md existe, possui conteudo e sem imagens quebradas', () => {
+			const guiaMdPath = path.resolve(__dirname, '..', 'media', 'sync', 'guia.md');
+			const mediaSyncDir = path.resolve(__dirname, '..', 'media', 'sync');
+
+			assert.ok(fs.existsSync(guiaMdPath), 'guia.md deve existir');
+			const content = fs.readFileSync(guiaMdPath, 'utf8');
+			assert.ok(content.length > 100, 'guia.md nao deve estar vazio');
+
+			// Nao contem segredos ou IDs reais
+			assert.doesNotMatch(content, /ghp_[a-zA-Z0-9]{36}/);
+			assert.doesNotMatch(content, /github_pat_[a-zA-Z0-9_]{50,}/);
+			assert.doesNotMatch(content, /gist\.github\.com\/[a-f0-9]{32}/i);
+
+			// Toda imagem referenciada por ![texto](arquivo) deve existir no disco
+			const imageRegex = /!\[.*?\]\((.*?)\)/g;
+			let match;
+			const missingImages = [];
+			while ((match = imageRegex.exec(content)) !== null) {
+				const imgRelPath = match[1].replace(/^\.\//, '');
+				const fullImgPath = path.join(mediaSyncDir, imgRelPath);
+				if (!fs.existsSync(fullImgPath)) {
+					missingImages.push(imgRelPath);
+				}
+			}
+			assert.deepEqual(missingImages, [], 'Toda imagem referenciada no guia.md deve existir fisicamente');
+		});
+
+		test('isFirstTimeGuide identifica corretamente se e primeiro acesso', () => {
+			const guiaModule = require('../lib/sync/guia');
+			assert.equal(guiaModule.isFirstTimeGuide(undefined), true);
+			assert.equal(guiaModule.isFirstTimeGuide(null), true);
+			assert.equal(guiaModule.isFirstTimeGuide(false), true);
+			assert.equal(guiaModule.isFirstTimeGuide(true), false);
+		});
+	});
+
+	describe('10. Smoke Test do registerSync e UI', () => {
+		test('registerSync registra todos os comandos agentecode.sync.* e a barra de status', async () => {
+			const Module = require('node:module');
+			const originalLoad = Module._load;
+
+			const registeredCommands = new Map();
+			let createdStatusBar = null;
+			const executedCommands = [];
+			const testTmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sync-smoke-'));
+
+			const mockVscode = {
+				commands: {
+					registerCommand: (id, handler) => {
+						registeredCommands.set(id, handler);
+						return { dispose: () => registeredCommands.delete(id) };
+					},
+					executeCommand: async (cmd, ...args) => {
+						executedCommands.push({ cmd, args });
+					}
+				},
+				window: {
+					createStatusBarItem: (alignment, priority) => {
+						createdStatusBar = {
+							alignment,
+							priority,
+							text: '',
+							tooltip: '',
+							name: '',
+							command: '',
+							shown: false,
+							show() { this.shown = true; },
+							dispose() {}
+						};
+						return createdStatusBar;
+					},
+					createOutputChannel: (name, opts) => ({
+						name,
+						opts,
+						info() {},
+						warn() {},
+						error() {}
+					}),
+					showInformationMessage: async () => null,
+					showWarningMessage: async () => null,
+					showErrorMessage: async () => null,
+					showQuickPick: async () => null,
+					withProgress: async (opts, task) => task({ report() {} }, { onCancellationRequested() {} })
+				},
+				workspace: {
+					createFileSystemWatcher: () => ({
+						onDidChange: () => ({ dispose() {} }),
+						onDidCreate: () => ({ dispose() {} }),
+						onDidDelete: () => ({ dispose() {} }),
+						dispose() {}
+					}),
+					getConfiguration: () => ({
+						get: (k, def) => def,
+						update: async () => {}
+					}),
+					openTextDocument: async () => ({})
+				},
+				Uri: {
+					file: f => ({ fsPath: f, scheme: 'file' }),
+					parse: s => ({ toString: () => s })
+				},
+				RelativePattern: function (base, pattern) {
+					this.base = base;
+					this.pattern = pattern;
+				},
+				StatusBarAlignment: {
+					Left: 1,
+					Right: 2
+				},
+				ConfigurationTarget: {
+					Global: 1
+				},
+				ProgressLocation: {
+					Notification: 15
+				},
+				ViewColumn: {
+					Beside: -2
+				},
+				env: {
+					clipboard: { writeText: async () => {} },
+					openExternal: async () => {}
+				}
+			};
+
+			Module._load = function (request, parent, isMain) {
+				if (request === 'vscode') {
+					return mockVscode;
+				}
+				return originalLoad.apply(this, arguments);
+			};
+
+			try {
+				delete require.cache[require.resolve('../lib/sync/ui')];
+				delete require.cache[require.resolve('../lib/sync/guia')];
+				delete require.cache[require.resolve('../lib/sync/syncController')];
+				delete require.cache[require.resolve('../lib/sync/index')];
+
+				const { registerSync } = require('../lib/sync/index');
+
+				const mockGlobalState = new Map();
+				const mockSecrets = new Map();
+
+				const mockContext = {
+					subscriptions: [],
+					extensionPath: path.resolve(__dirname, '..'),
+					globalStorageUri: { fsPath: path.join(testTmpDir, 'mockGlobalStorage') },
+					globalState: {
+						get: (k, def) => mockGlobalState.has(k) ? mockGlobalState.get(k) : def,
+						update: async (k, v) => { mockGlobalState.set(k, v); }
+					},
+					secrets: {
+						get: async k => mockSecrets.get(k),
+						store: async (k, v) => { mockSecrets.set(k, v); },
+						delete: async k => { mockSecrets.delete(k); }
+					}
+				};
+
+				const controller = registerSync(mockContext);
+				assert.ok(controller, 'registerSync deve retornar instancia de SyncController');
+
+				const expectedCommands = [
+					'agentecode.sync.menu',
+					'agentecode.sync.connect',
+					'agentecode.sync.upload',
+					'agentecode.sync.download',
+					'agentecode.sync.copyGistUrl',
+					'agentecode.sync.openGist',
+					'agentecode.sync.toggleAuto',
+					'agentecode.sync.undoLast',
+					'agentecode.sync.disconnect',
+					'agentecode.sync.guide'
+				];
+
+				for (const cmd of expectedCommands) {
+					assert.ok(registeredCommands.has(cmd), `Comando ${cmd} deve estar registrado`);
+				}
+
+				assert.ok(createdStatusBar, 'Barra de status deve ser criada');
+				assert.equal(createdStatusBar.priority, 9990, 'Prioridade da barra de status deve ser 9990');
+				assert.equal(createdStatusBar.shown, true, 'Barra de status deve estar visivel');
+				assert.equal(createdStatusBar.command, 'agentecode.sync.menu');
+
+				await controller.showMenu();
+				assert.equal(mockGlobalState.get('agentecode.sync.guideShown'), true, 'guideShown deve ser marcado como true');
+				assert.ok(executedCommands.some(c => c.cmd === 'markdown.showPreviewToSide'), 'Deve invocar markdown.showPreviewToSide');
+
+				const countBefore = executedCommands.length;
+				await controller.showMenu();
+				assert.equal(executedCommands.length, countBefore, 'Na segunda vez nao reabre o preview');
+			} finally {
+				Module._load = originalLoad;
+				try { fs.rmSync(testTmpDir, { recursive: true, force: true }); } catch {}
+			}
+		});
+	});
+
 });

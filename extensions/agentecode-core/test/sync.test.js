@@ -291,6 +291,20 @@ describe('Sincronizacao de Configuracoes - Nucleo Puro', () => {
 			});
 			assert.equal(p.action, 'nothing');
 		});
+
+		test('hasRemoteChanged: data nova do Gist com conteudo igual nao conta como mudanca', () => {
+			const base = { manifestHash: 'h1', remoteUpdatedAt: '2026-10-22T10:00:00Z' };
+			assert.equal(plan.hasRemoteChanged(base, 'h1', '2026-10-22T11:00:00Z'), false);
+			assert.equal(plan.hasRemoteChanged(base, 'h2', '2026-10-22T11:00:00Z'), true);
+			assert.equal(plan.hasRemoteChanged({ remoteUpdatedAt: 'a' }, 'h1', 'b'), true);
+			assert.equal(plan.hasRemoteChanged({}, 'h1', 'b'), false);
+		});
+
+		test('computeRemoteCompositeHash: usa o manifesto e ignora manifesto/README no calculo', () => {
+			assert.equal(plan.computeRemoteCompositeHash({ 'a.json': '1' }, { compositeHash: 'x' }), 'x');
+			const files = { 'a.json': '1', [config.MANIFEST_FILE]: 'm', [config.README_FILE]: 'r' };
+			assert.equal(plan.computeRemoteCompositeHash(files), plan.computeRemoteCompositeHash({ 'a.json': '1' }));
+		});
 	});
 
 	describe('5. backup.js', () => {

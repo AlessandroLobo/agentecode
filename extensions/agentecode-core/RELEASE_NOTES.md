@@ -2,6 +2,13 @@
 
 Uma seção por versão, da mais nova para a mais antiga. O título de cada seção precisa ter o formato `## vX.Y.Z - data`.
 
+## v1.0.5 - 22/10/2026
+
+Correção do aviso falso da sincronização.
+
+- **Acabou o aviso "Há configurações mais novas no GitHub" quando não havia nada novo.** Ao abrir a IDE, o AgenteCode comparava só a data do Gist, que muda mesmo com o conteúdo igual (por exemplo, depois de um envio feito por este computador). Agora ele compara o **conteúdo** e só avisa quando as configurações no GitHub são realmente diferentes.
+- Quando a data muda mas o conteúdo é o mesmo, a IDE atualiza o registro local em silêncio, e a próxima verificação ao abrir não gasta nem a consulta completa.
+
 ## v1.0.4 - 22/10/2026
 
 Sincronização nativa de configurações, atalhos, snippets e extensões via GitHub Gist secreto.

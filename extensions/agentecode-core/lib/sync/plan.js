@@ -9,6 +9,42 @@ const { sha256 } = require('./snapshot');
 const config = require('./config');
 
 /**
+ * Calcula o hash composto do conteudo remoto (ignora manifesto e README).
+ *
+ * @param {Record<string, string>} remoteFiles Arquivos do Gist
+ * @param {any} [remoteManifest] Manifesto remoto agentecode-sync.json
+ * @returns {string}
+ */
+function computeRemoteCompositeHash(remoteFiles, remoteManifest) {
+	if (remoteManifest && remoteManifest.compositeHash) {
+		return remoteManifest.compositeHash;
+	}
+	const keys = Object.keys(remoteFiles || {})
+		.filter(f => f !== config.MANIFEST_FILE && f !== config.README_FILE)
+		.sort();
+	return sha256(keys.map(f => `${f}:${sha256(remoteFiles[f])}\n`).join(''));
+}
+
+/**
+ * Diz se o remoto mudou desde a base. Compara o conteudo (hash composto) quando a base o tem;
+ * so recorre a data de atualizacao do Gist na falta dele, pois a data muda mesmo com conteudo igual.
+ *
+ * @param {any} base Ultimo estado de sincronizacao salvo localmente
+ * @param {string} remoteCompositeHash Hash composto do remoto
+ * @param {string} [remoteUpdatedAt] updated_at atual do Gist
+ * @returns {boolean}
+ */
+function hasRemoteChanged(base, remoteCompositeHash, remoteUpdatedAt) {
+	if (base && base.manifestHash) {
+		return remoteCompositeHash !== base.manifestHash;
+	}
+	if (base && base.remoteUpdatedAt && remoteUpdatedAt) {
+		return base.remoteUpdatedAt !== remoteUpdatedAt;
+	}
+	return false;
+}
+
+/**
  * Cria o plano de sincronizacao comparando o estado local, remoto e a base (ultima sincronizacao).
  * Implementa a decisao de 3 vias da secao 6.3 do plano.
  *
@@ -163,11 +199,7 @@ function createSyncPlan({
 	// 5. Decisao de 3 vias com base existente
 	const localCompositeHash = localSnapshot.compositeHash;
 	// E5.5: hash de fallback nao deve incluir agentecode-sync.json e LEIA-ME.md
-	const remoteKeysForHash = Object.keys(remoteFiles)
-		.filter(f => f !== config.MANIFEST_FILE && f !== config.README_FILE)
-		.sort();
-	const remoteCompositeHash = (remoteManifest && remoteManifest.compositeHash) ||
-		sha256(remoteKeysForHash.map(f => `${f}:${sha256(remoteFiles[f])}\n`).join(''));
+	const remoteCompositeHash = computeRemoteCompositeHash(remoteFiles, remoteManifest);
 
 	// Local mudou desde a base?
 	let localChanged = false;
@@ -183,12 +215,7 @@ function createSyncPlan({
 	}
 
 	// Remoto mudou desde a base?
-	let remoteChanged = false;
-	if (base.manifestHash) {
-		remoteChanged = remoteCompositeHash !== base.manifestHash;
-	} else if (base.remoteUpdatedAt && remoteUpdatedAt) {
-		remoteChanged = base.remoteUpdatedAt !== remoteUpdatedAt;
-	}
+	const remoteChanged = hasRemoteChanged(base, remoteCompositeHash, remoteUpdatedAt);
 
 	// Arquivos que mudaram localmente em relacao ao remoto ou base
 	const filesToUpload = fileDiffs
@@ -256,6 +283,8 @@ function decideUpload(syncPlan, { auto }) {
 }
 
 module.exports = {
+	computeRemoteCompositeHash,
+	hasRemoteChanged,
 	decideUpload,
 	createSyncPlan
 };

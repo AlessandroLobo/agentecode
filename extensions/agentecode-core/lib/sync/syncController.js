@@ -746,6 +746,19 @@ class SyncController {
 				}
 
 				if (result.gist && result.gist.updated_at !== lastSync.remoteUpdatedAt) {
+					// A data do Gist muda mesmo com conteúdo igual (ex.: após um envio deste computador);
+					// só avisa quando o conteúdo remoto é realmente diferente do último sincronizado.
+					const remoteData = snapshot.parseRemoteGistFiles(result.gist.files);
+					const remoteHash = plan.computeRemoteCompositeHash(remoteData.files, remoteData.manifest);
+					if (!plan.hasRemoteChanged(lastSync, remoteHash, result.gist.updated_at)) {
+						this.log.info('Gist com data nova, mas conteúdo igual ao último sincronizado. Sem aviso.');
+						await this.setLastSync({
+							...lastSync,
+							remoteUpdatedAt: result.gist.updated_at,
+							etag: result.etag
+						});
+						return;
+					}
 					const choice = await vscode.window.showInformationMessage(
 						'Há configurações mais novas no GitHub prontas para download.',
 						'Ver mudanças',

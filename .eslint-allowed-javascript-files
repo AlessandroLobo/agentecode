@@ -182,3 +182,13 @@ extensions/agentecode-core/lib/usage/core.js
 extensions/agentecode-core/lib/usage/direct.js
 extensions/agentecode-core/lib/usage/usage.js
 extensions/agentecode-core/test/usage.test.js
+extensions/agentecode-core/lib/sync/config.js
+extensions/agentecode-core/lib/sync/jsonc.js
+extensions/agentecode-core/lib/sync/exclusions.js
+extensions/agentecode-core/lib/sync/snapshot.js
+extensions/agentecode-core/lib/sync/plan.js
+extensions/agentecode-core/lib/sync/githubAuth.js
+extensions/agentecode-core/lib/sync/gistClient.js
+extensions/agentecode-core/lib/sync/backup.js
+extensions/agentecode-core/test/fakeGitHub.js
+extensions/agentecode-core/test/sync.test.js

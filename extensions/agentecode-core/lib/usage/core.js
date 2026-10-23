@@ -359,6 +359,13 @@ const formatRemaining = ms => {
 
 const clock = ms => new Date(ms).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
+// Momento do reinício: "às 18:41" se for hoje, "ter. às 21:00" nos outros dias.
+const resetClock = (resetsAt, now) => {
+  const d = new Date(resetsAt);
+  if (d.toDateString() === new Date(now).toDateString()) return `às ${clock(resetsAt)}`;
+  return `${d.toLocaleDateString('pt-BR', { weekday: 'short' })} às ${clock(resetsAt)}`;
+};
+
 // Janela utilizável: leitura recente e ainda não reiniciada.
 const liveWindow = (w, limits, now) => {
   if (!w || !limits || limits.stale) return null;
@@ -428,7 +435,7 @@ const render = (snap, now, opts, limits) => {
       `| Tokens (soma) | in ${formatTokens(t.input)} · out ${formatTokens(t.output)} · cache lido ${formatTokens(t.cacheRead)} · cache escrito ${formatTokens(t.cacheWrite)} |`,
     );
   }
-  const remaining = w => (w.resetsAt === null ? '' : ` — reseta em ${formatRemaining(w.resetsAt - now)}`);
+  const remaining = w => (w.resetsAt === null ? '' : ` — reseta em ${formatRemaining(w.resetsAt - now)} (${resetClock(w.resetsAt, now)})`);
   if (five) lines.push(`| Limite 5h | ${five.percent}%${remaining(five)} |`);
   if (week) lines.push(`| Limite 7d | ${week.percent}%${remaining(week)} |`);
   lines.push('');
@@ -546,7 +553,7 @@ const renderPanel = (snap, now, opts, limits) => {
   const five = liveWindow(limits && limits.session, limits, now);
   const week = liveWindow(limits && limits.weekly, limits, now);
   const ramp = rampOf(opts);
-  const resets = w => [w.resetsAt !== null ? `Reseta em ${formatRemaining(w.resetsAt - now)}` : '', ageSuffix(limits).trim().replace(/^\((.*)\)$/, 'leitura $1')].filter(Boolean).join(' · ');
+  const resets = w => [w.resetsAt !== null ? `Reseta em ${formatRemaining(w.resetsAt - now)} (${resetClock(w.resetsAt, now)})` : '', ageSuffix(limits).trim().replace(/^\((.*)\)$/, 'leitura $1')].filter(Boolean).join(' · ');
   const body = ['<h2>Uso da assinatura</h2>'];
 
   const reiniciada = (titulo) =>

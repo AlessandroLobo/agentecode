@@ -2,6 +2,12 @@
 
 Uma seção por versão, da mais nova para a mais antiga. O título de cada seção precisa ter o formato `## vX.Y.Z - data`.
 
+## v1.0.6 - 23/10/2026
+
+Horário de reinício dos limites de uso.
+
+- **Quando o limite reinicia:** na barra de status e no painel, o limite de sessão (5h) mostra o horário do reinício (ex.: "reseta em 2h18 (às 19:08)") e o semanal mostra o dia e a hora (ex.: "ter. às 21:00"), como no Claude Code Desktop.
+
 ## v1.0.5 - 22/10/2026
 
 Correção do aviso falso da sincronização.
